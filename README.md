@@ -1,24 +1,11 @@
-# 🌱 Metroid – Starter WebApp SKELETON
+# Projet OpenClassRooms Tom Troc
 
-Un mini-framework PHP MVC moderne, léger et typé, inspiré de Symfony.  
-Parfait pour initier rapidement des projets web structurés sans dépendre d’un framework trop lourd.
-
----
-
-## ✨ Fonctionnalités principales
-
-- 🧱 Architecture MVC claire et modulaire
-- 🔁 Routage YAML (`config/route.yaml`)
-- 🚀 Contrôleurs typés (avec autoload PSR-4)
-- 💬 Objets `Request` et `Response` pour centraliser les flux HTTP
-- 🖼️ Système de vues avec `layout.phtml` personnalisable
-- ⚡ Services injectés simplement (`ViewRenderer`, `FlashMessage`, etc.)
-- ❗ Gestion d’erreurs propre avec vue dédiée
-- 🧪 Prêt pour les tests (PHPUnit)
+README en cours de mise à jour ...
+Le projet TomTroc est en cours de développement pour la formation OpenClassRooms et à été créé à partir du framework Metroid :
 
 ---
 
-## 📦 Installation
+## 📦 Installation de Metroid
 
 La structure est divisée en **2 dépôts distincts** :
 
