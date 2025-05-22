@@ -1,0 +1,34 @@
+# Rôle : Déclare toutes les routes disponibles dans l'application.
+# Fonctionnement :
+# Liste les chemins (URI) associés à des méthodes HTTP (GET, POST, etc.).
+# Associe chaque route à une "action" dans un contrôleur (ex. : Mini\Controller\IndexAction).
+
+routes:
+  # Exemple de route :
+  "/":
+    method: GET
+    callable: App\Controller\HomeController::index
+
+  "/auth/registration":
+    method: GET|POST
+    callable: App\Controller\AuthController::register
+
+  "/auth/login":
+    method: GET|POST
+    callable: App\Controller\AuthController::login
+
+  "/auth/logout":
+    method: GET
+    callable: App\Controller\AuthController::logout
+
+  "/account":
+    method: GET
+    callable: App\Controller\AccountController::show
+
+  "/account/update":
+    method: POST
+    callable: App\Controller\AccountController::update
+
+  "/account/books/create":
+    callable: App\Controller\BookController::create
+    method: POST
