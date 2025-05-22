@@ -1,0 +1,23 @@
+<section class="register-container">
+    <div class="register-left">
+        <h1>Connection</h1>
+
+        <form action="<?= $this->url('auth/login') ?>" method="POST" class="form">
+
+            <label for="email">Adresse email</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="btn-green">Se connecter</button>
+        </form>
+
+        <p class="register-alt">Pas de compte? <a href="<?= $this->url('auth/registration') ?>">Inscrivez-vous</a></p>
+    </div>
+
+    <div class="register-right">
+        <img src="<?= $this->url('/../assets/images/library.jpg') ?>" alt="Photo d'étagères de livres">
+        <p class="photo-credit">Hamza</p>
+    </div>
+</section>

@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * Fichier contenant la vue de des messages flash
+ */
+?>
+
+<div class="custom-alert <?= htmlspecialchars($cssClass) ?>">
+    <ul>
+        <li><?= htmlspecialchars($message) ?></li>
+    </ul>
+    <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+</div>

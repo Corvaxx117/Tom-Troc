@@ -1,0 +1,124 @@
+<section class="profile-wrapper">
+    <h1>Mon compte</h1>
+
+    <div class="profile-container">
+        <div class="profile-left">
+            <div class="profile-avatar">
+                <img src="<?= $this->url('/../assets/images/avatar-placeholder.jpg') ?>" alt="Avatar utilisateur">
+                <a href="#" class="edit-avatar">modifier</a>
+            </div>
+            <div class="profile-username"><?= $this->clean($user['name'], false) ?></div>
+            <div class="profile-meta">Membre depuis 1 an</div>
+            <div class="profile-library">
+                <div class="label">Bibliothèque</div>
+                <div class="value"><i class="fa-solid fa-book"></i> <?= $user['book_count'] ?? 0 ?> livres</div>
+            </div>
+        </div>
+
+        <div class="profile-right">
+            <h2>Vos informations personnelles</h2>
+            <form method="post" action="<?= $this->url('/account/update') ?>">
+                <label>Adresse email</label>
+                <input type="email" name="email" value="<?= $this->clean($user['email'], false) ?>">
+
+                <label>Mot de passe (laissez vide pour ne pas le modifier)</label>
+                <input type="password" name="password" value="">
+
+                <label>Pseudo</label>
+                <input type="text" name="name" value="<?= $this->clean($user['name'], false) ?>">
+
+                <button type="submit">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+</section>
+<!-- Bouton d’ouverture -->
+<button class="btn-add-book" onclick="openModal()">+ Ajouter un livre</button>
+
+<!-- Fenêtre modale -->
+<div id="bookModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Ajouter un livre</h2>
+
+        <form action="<?= $this->url('/account/books/create') ?>" method="POST" enctype="multipart/form-data">
+            <label>Titre</label>
+            <input type="text" name="title" required>
+
+            <label>Auteur</label>
+            <input type="text" name="author" required>
+
+            <label>Description</label>
+            <textarea name="description"></textarea>
+
+            <label>Image de couverture (optionnelle)</label>
+            <input type="file" name="image">
+
+            <label>
+                <input type="checkbox" name="is_available" value="1" checked>
+                Disponible à l'échange
+            </label>
+
+            <button type="submit">Ajouter</button>
+        </form>
+    </div>
+</div>
+
+<section class="profile-wrapper">
+    <table class="book-table">
+        <thead>
+            <tr>
+                <th>Photo</th>
+                <th>Titre</th>
+                <th>Auteur</th>
+                <th>Description</th>
+                <th>Disponibilité</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!empty($books)): ?>
+                <?php foreach ($books as $index => $book): ?>
+                    <tr class="<?= $index % 2 === 0 ? 'even' : 'odd' ?>">
+                        <td>
+                            <img src="<?= $this->clean($book['image_url']) ?>" alt="<?= $this->clean($book['title'], false) ?>" class="book-cover">
+                        </td>
+                        <td><?= $this->clean($book['title'], false) ?></td>
+                        <td><?= $this->clean($book['author'], false) ?></td>
+                        <td><?= $this->clean($book['description']) ?></td>
+                        <td>
+                            <?php if ($book['is_available']): ?>
+                                <span class="status available">disponible</span>
+                            <?php else: ?>
+                                <span class="status unavailable">non dispo.</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="<?= $this->url('/account/edit/:id', ['id' => $book['id']]) ?>" class="action edit">Éditer</a>
+                            <a href="<?= $this->url('/account/delete/:id', ['id' => $book['id']]) ?>" class="action delete" onclick="return confirm('Supprimer ce livre ?')">Supprimer</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+
+</section>
+
+<script>
+    function openModal() {
+        document.getElementById('bookModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('bookModal').style.display = 'none';
+    }
+
+    // Fermer si on clique à l’extérieur de la boîte
+    window.onclick = function(event) {
+        const modal = document.getElementById('bookModal');
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>

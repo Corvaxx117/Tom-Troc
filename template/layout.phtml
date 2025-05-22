@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Template principal de l'application
+ */
+
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Starter webapp Corvaxx">
+    <title><?= isset($title) ? $this->clean($title, false) : 'Bienvenue' ?> | Tom Troc</title>
+
+    <!-- Google Fonts + FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+
+    <!-- Style principal -->
+    <link rel="stylesheet" href="<?= $this->url('../assets/CSS/style.css') ?>">
+    <!-- Style des messages flash -->
+    <link rel="stylesheet" href="<?= $this->url('../assets/CSS/flashMessage.css') ?>">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <!-- <div class="logo-icon">TT</div> -->
+                <img class="logo-icon" src="../assets/images/IconTT.png" alt="">
+                <span class="logo-text">Tom Troc</span>
+            </div>
+
+            <nav class="nav-center">
+                <a href="<?= $this->url('/') ?>" class="nav-link active">Accueil</a>
+                <a href="<?= $this->url('/livres') ?>" class="nav-link">Nos livres à l'échange</a>
+            </nav>
+
+            <div class="nav-right">
+                <a href="<?= $this->url('/messagerie') ?>" class="nav-icon-link">
+                    <i class="fa-regular fa-message"></i> Messagerie <span class="badge">1</span>
+                </a>
+                <!-- Si on est connecté, on affiche le bouton de déconnexion, sinon, on affiche le bouton de connexion : -->
+                <?php if ($this->isAuthenticated()): ?>
+                    <a class="nav-icon-link" href="<?= $this->url('account') ?>">Mon profil</a>
+                    <a class="nav-icon-link" href="<?= $this->url('auth/logout') ?>" onclick="return confirm('Etes-vous sur de vouloir vous déconnecter ?')">Déconnexion</a>
+                <?php else: ?>
+                    <a class="nav-icon-link" href="<?= $this->url('auth/login') ?>">Connexion</a>
+                    <a class="nav-icon-link" href="<?= $this->url('auth/registration') ?>">Inscription</a>
+                <?php endif ?>
+            </div>
+        </div>
+    </header>
+
+    <?php $this->renderFlash(); ?>
+
+    <main class="container">
+        <?php include $template; ?>
+    </main>
+
+    <footer>
+        <div class="mentions-legales">Mentions légales</div>
+        <div class="tom-troc1">Tom Troc©</div>
+        <div class="confidentialite">Politique de confidentialité</div>
+        <img src="../assets/images/GreenIconTomTroc.png" alt="">
+    </footer>
+    <script src="<?= $this->url('../assets/JS/main.js') ?>" type="module"></script>
+</body>
+
+</html>

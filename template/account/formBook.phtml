@@ -1,0 +1,20 @@
+<form action="<?= $this->url('/account/books/create') ?>" method="POST" enctype="multipart/form-data">
+    <label for="title">Titre</label>
+    <input type="text" name="title" required>
+
+    <label for="author">Auteur</label>
+    <input type="text" name="author" required>
+
+    <label for="description">Description</label>
+    <textarea name="description"></textarea>
+
+    <label for="image">Image de couverture (optionnel)</label>
+    <input type="file" name="image">
+
+    <label>
+        <input type="checkbox" name="is_available" value="1" checked>
+        Disponible à l'échange
+    </label>
+
+    <button type="submit">Ajouter</button>
+</form>

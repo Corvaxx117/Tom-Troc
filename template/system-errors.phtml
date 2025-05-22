@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * Fichier contenant la vue de des erreurs systeme
+ */
+
+?>
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Le Projet MVC OpenClassrooms">
+    <title>Erreur</title>
+    <link rel="stylesheet" href="../assets/CSS/system-errors.css">
+</head>
+
+<body>
+    <div class="error-container">
+        <div class="error-code"><?= htmlspecialchars($statusCode); ?> &#9785;</div>
+        <div class="error-message"><?= htmlspecialchars($message); ?></div>
+
+        <?php if (!empty($description)): ?>
+            <div class="error-description"><?= htmlspecialchars($description); ?></div>
+        <?php endif; ?>
+
+        <button class="toggle-trace">Détails techniques ⬇</button>
+        <div class="error-trace">
+            <h3>Trace de l'erreur</h3>
+            <ul>
+                <?php foreach ($trace as $index => $step): ?>
+                    <li>
+                        <strong>#<?= $index ?></strong>
+                        <span class="trace-file"><?= $step['file'] ?? 'Inconnu' ?></span>
+                        <span class="trace-line">Ligne : <?= $step['line'] ?? 'N/A' ?></span>
+                        <code><?= $step['function'] ?? 'Function inconnue' ?></code>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.querySelector(".toggle-trace");
+            const errorTrace = document.querySelector(".error-trace");
+
+            if (toggleBtn && errorTrace) {
+                toggleBtn.addEventListener("click", function() {
+                    if (errorTrace.style.display === "none" || errorTrace.style.display === "") {
+                        errorTrace.style.display = "block";
+                        toggleBtn.textContent = "Masquer les détails ⬆";
+                    } else {
+                        errorTrace.style.display = "none";
+                        toggleBtn.textContent = "Afficher les détails techniques ⬇";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
