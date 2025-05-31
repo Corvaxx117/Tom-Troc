@@ -27,10 +27,54 @@ class BookModel extends TableAbstractModel
      * @param int $userId L'ID de l'utilisateur
      * @return array Liste des livres
      */
-    public function findBooksByUser(int $userId): array
+    public function findBooksByUser(int $userId, string $sort = 'title', string $dir = 'ASC'): array
     {
-        return $this->findBy(['user_id' => $userId]);
+        $allowedSorts = ['title', 'author', 'description', 'is_available'];
+        $sort = in_array($sort, $allowedSorts) ? $sort : 'title';
+        $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
+        $sql = "SELECT * FROM books WHERE user_id = :user_id ORDER BY $sort $dir";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+
+        return $stmt->fetchAll();
     }
+
+    public function searchAvailableBooks(string $term = ''): array
+    {
+        $term = trim($term);
+
+        if ($term === '') {
+            // Si aucun terme de recherche, on retourne tous les livres disponibles avec leur propriétaire
+            return $this->findAvailableBooksWithOwner();
+        }
+
+        // Requête avec recherche par titre ou auteur
+        $sql = "
+        SELECT books.*, users.name AS owner_username
+        FROM books
+        JOIN users ON books.user_id = users.id
+        WHERE books.is_available = 1
+          AND (books.title LIKE :term OR books.author LIKE :term)
+        ORDER BY books.title ASC
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute(['term' => '%' . $term . '%']);
+        return $stmt->fetchAll();
+    }
+
+
+    public function findAvailableBooksWithOwner(): array
+    {
+        return $this->findBy(
+            ['is_available' => 1],
+            'JOIN users ON books.user_id = users.id',
+            'books.*, users.name AS owner_username',
+            'books.title ASC'
+        );
+    }
+
 
     /**
      * Créé un nouveau livre.

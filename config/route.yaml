@@ -1,34 +1,55 @@
 # Rôle : Déclare toutes les routes disponibles dans l'application.
 # Fonctionnement :
 # Liste les chemins (URI) associés à des méthodes HTTP (GET, POST, etc.).
-# Associe chaque route à une "action" dans un contrôleur (ex. : Mini\Controller\IndexAction).
+# Associe chaque route à une "action" dans un contrôleur (ex. : Metroid\Controller\IndexAction).
 
 routes:
-  # Exemple de route :
+  # Page d'accueil :
   "/":
     method: GET
     callable: App\Controller\HomeController::index
 
+  # Page Nos livres à l'échange :
+  "/books":
+    method: GET
+    callable: App\Controller\BookController::listAll
+
+  # Formulaire d'inscription
   "/auth/registration":
     method: GET|POST
     callable: App\Controller\AuthController::register
 
+  # Formulaire de connexion
   "/auth/login":
     method: GET|POST
     callable: App\Controller\AuthController::login
 
+  # Deconnexion
   "/auth/logout":
     method: GET
     callable: App\Controller\AuthController::logout
 
+  # Page Mon Compte
   "/account":
     method: GET
     callable: App\Controller\AccountController::show
 
+  # Mise à jour du profil
   "/account/update":
     method: POST
     callable: App\Controller\AccountController::update
 
-  "/account/books/create":
+  # Création d'un livre
+  "/account/book/create":
     callable: App\Controller\BookController::create
     method: POST
+
+  # Suppression d'un livre
+  "/account/book/delete/:id":
+    method: POST
+    callable: App\Controller\BookController::delete
+
+  # Edition d'un livre
+  "/account/book/edit/:id":
+    method: GET|POST
+    callable: App\Controller\BookController::edit

@@ -1,0 +1,40 @@
+<!-- Template de la page d'édition d'un livre -->
+
+<section class="editBook-wrapper">
+    <a href="<?= $this->url('/account') ?>" class="back-link">← retour</a>
+
+    <h1 class="page-title">Modifier les informations</h1>
+
+    <form method="POST" enctype="multipart/form-data" class="edit-book-form">
+        <div class="form-grid">
+
+            <!-- Colonne image -->
+            <div class="form-image">
+                <p>Photo de couverture</p>
+                <img src="<?= IMG_PATH . $book['image_url'] ?>" alt="<?= $this->clean($book['title'], false) ?>" class="book-cover-preview">
+                <label for="image" class="change-photo">Modifier la photo</label>
+                <input type="file" name="image" id="image" class="file-input">
+            </div>
+
+            <!-- Colonne infos -->
+            <div class="form-fields">
+                <label for="title">Titre</label>
+                <input type="text" id="title" name="title" value="<?= $this->clean($book['title'], false) ?>" required>
+
+                <label for="author">Auteur</label>
+                <input type="text" id="author" name="author" value="<?= $this->clean($book['author'], false) ?>" required>
+
+                <label for="description">Commentaire</label>
+                <textarea id="description" name="description" rows="8"><?= $this->clean($book['description'], false) ?></textarea>
+
+                <label for="is_available">Disponibilité</label>
+                <select name="is_available" id="is_available">
+                    <option value="1" <?= $book['is_available'] ? 'selected' : '' ?>>disponible</option>
+                    <option value="0" <?= !$book['is_available'] ? 'selected' : '' ?>>non disponible</option>
+                </select>
+
+                <button type="submit" class="btn-green">Valider</button>
+            </div>
+        </div>
+    </form>
+</section>

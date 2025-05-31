@@ -66,7 +66,7 @@ class AuthController extends AbstractController
     public function logout(): Response
     {
         AuthService::logout();
-        $this->flashMessage->add('success', 'Déconnexion réussie.');
+        $this->flashMessage->add('success', 'Vous êtes déconnecté(e).');
 
         return $this->render('auth/login.phtml', [
             'title' => 'Connexion'

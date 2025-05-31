@@ -1,0 +1,35 @@
+{
+    "name": "corvaxx/metroid-webapp-skeleton",
+    "description": "Projet de base pour démarrer avec Metroid.",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-mbstring": "*",
+        "symfony/dotenv": "^6.0",
+        "corvaxx/metroid-webapp": "^1.0"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Corvaxx117/metroid-webapp"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "scripts": {
+    "setup-env": "@php -r \"if (!file_exists('.env')) copy('.env.example', '.env');\"",
+    "post-create-project-cmd": [
+        "@setup-env",
+        "php bin/post-install.php"
+    ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require-dev": {
+        "symfony/var-dumper": "^7.2"
+    }
+}

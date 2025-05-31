@@ -1,0 +1,81 @@
+/* Conteneur principal */
+.error-container {
+    max-width: 600px;
+    margin: 10% auto;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Code de l'erreur */
+.error-code {
+    font-size: 60px;
+    font-weight: bold;
+    color: #e74c3c;
+    margin: 10px 0;
+}
+
+/* Message d'erreur */
+.error-message {
+    font-size: 18px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+/* Bouton pour afficher le trace */
+.toggle-trace {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.toggle-trace:hover {
+    background-color: #2980b9;
+}
+
+/* Conteneur du trace caché par défaut */
+.error-trace {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+    text-align: left;
+}
+
+/* Liste du trace */
+.error-trace ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Élément du trace */
+.error-trace li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+overflow-wrap: break-word;}
+
+/* Affichage de fichier et ligne */
+.trace-file {
+    font-weight: bold;
+    color: #c0392b;
+}
+
+.trace-line {
+    font-style: italic;
+    color: #27ae60;
+}
+
+code {
+    background: #ecf0f1;
+    padding: 3px;
+    border-radius: 3px;
+}

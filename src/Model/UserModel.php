@@ -21,14 +21,14 @@ class UserModel extends TableAbstractModel
         return $this->findOneBy(['id' => $id]);
     }
 
-    /**
-     * Récupère tous les utilisateurs.
-     * @return array : un tableau d'objets User.
-     */
-    public function findAllUsers(): array
-    {
-        return parent::findAll();
-    }
+    // /**
+    //  * Récupère tous les utilisateurs.
+    //  * @return array : un tableau d'objets User.
+    //  */
+    // public function findAllUsers(): array
+    // {
+    //     return parent::findAll();
+    // }
 
     /**
      * Trouve un utilisateur par son email.

@@ -1,0 +1,35 @@
+<!-- Template de la page de Nos livres à l'échange -->
+
+<section class="books-page">
+    <div class="ahead-container">
+        <h1 class="page-title">Nos livres à l’échange</h1>
+
+        <form method="GET" action="<?= $this->url('/books') ?>" class="search-form">
+            <div class="search-wrapper">
+                <i class="fa fa-search"></i>
+                <input type="text" name="q" placeholder="Rechercher un livre" value="<?= htmlspecialchars($search ?? '') ?>">
+
+                <?php if (!empty($search)): ?>
+                    <a href="<?= $this->url('/books') ?>" class="btn-reset" title="Annuler la recherche">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                <?php endif; ?>
+            </div>
+        </form>
+    </div>
+    <div class="books-grid">
+        <?php foreach ($books as $book): ?>
+            <div class="book-card">
+                <img src="<?= IMG_PATH . $this->clean($book['image_url'], false) ?>" alt="<?= $this->clean($book['title'], false) ?>">
+                <div class="book-details">
+                    <div class="book-title"><?= $this->clean($book['title'], false) ?></div>
+                    <div class="book-author"><?= $this->clean($book['author'], false) ?></div>
+                    <div class="book-vendor">Vendu par : <?= $this->clean($book['owner_username'], false) ?></div>
+                    <?php if (!$book['is_available']): ?>
+                        <span class="book-badge">non dispo</span>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</section>

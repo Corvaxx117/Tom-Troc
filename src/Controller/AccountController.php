@@ -8,6 +8,7 @@ use Metroid\Http\Request;
 use Metroid\Http\Response;
 use Metroid\View\ViewRenderer;
 use App\Services\FormValidator;
+use App\Services\FileUploaderService;
 use Metroid\Services\AuthService;
 use Metroid\FlashMessage\FlashMessage;
 use Metroid\Controller\AbstractController;
@@ -15,6 +16,8 @@ use Metroid\Controller\AbstractController;
 class AccountController extends AbstractController
 {
     private UserModel $userModel;
+    private BookModel $bookModel;
+    private FileUploaderService $fileUploader;
 
     public function __construct(
         ViewRenderer $viewRenderer,
@@ -22,8 +25,16 @@ class AccountController extends AbstractController
     ) {
         parent::__construct($viewRenderer, $flashMessage);
         $this->userModel = new UserModel();
+        $this->bookModel = new BookModel();
+        $this->fileUploader = new FileUploaderService();
     }
 
+    /**
+     * Accès à l'espace Mon Compte avec récupération des informations
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function show(Request $request): Response
     {
         // Vérifie que l'utilisateur est connecté
@@ -38,7 +49,10 @@ class AccountController extends AbstractController
         $user = AuthService::getUser();
 
         // Récupération des livres
-        $books = (new BookModel())->findBooksByUser($user['id']);
+        $sort = $request->get('sort', 'title');
+        $dir = strtoupper($request->get('dir', 'asc'));
+
+        $books = $this->bookModel->findBooksByUser($user['id'], $sort, $dir);
         // Compte les livres pour l'affichage
         $user['book_count'] = count($books);
 
@@ -66,6 +80,7 @@ class AccountController extends AbstractController
 
             if ($result['valid']) {
                 $userData = $result['data'];
+
                 // Construction des données à mettre à jour
                 $updateData = [
                     'name' => $userData['name'],
@@ -75,13 +90,27 @@ class AccountController extends AbstractController
                 if (!empty($userData['password'])) {
                     $updateData['password'] = $userData['password'];
                 }
-                // Exécution de la mise à jour
+
+                // GESTION UPLOAD AVATAR
+                if (!empty($_FILES['avatar']['tmp_name'])) {
+                    $avatarPath = $this->fileUploader->upload($_FILES['avatar'], $user['avatar'] ?? null);
+                    if ($avatarPath) {
+                        $updateData['avatar'] = $avatarPath;
+                    } else {
+                        $this->flashMessage->add('error', 'Erreur lors du téléchargement de la photo de profil.');
+                    }
+                }
+                // Mise à jour en base
                 $success = $this->userModel->updateUser($user['id'], $updateData);
 
                 if ($success) {
                     $this->flashMessage->add('success', 'Profil mis à jour avec succès.');
-                    // Met à jour les infos en session
-                    AuthService::login(array_merge($user, $updateData));
+                    // Met à jour la session avec les nouvelles données
+                    if (!isset($updateData['avatar'])) {
+                        $updateData['avatar'] = $user['avatar'] ?? null;
+                    }
+                    $updatedUser = $this->userModel->findBy(['id' => $user['id']])[0] ?? null;
+                    AuthService::login($updatedUser);
 
                     return $this->show($request);
                 } else {

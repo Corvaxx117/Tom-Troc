@@ -21,9 +21,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
 
     <!-- Style principal -->
-    <link rel="stylesheet" href="<?= $this->url('../assets/CSS/style.css') ?>">
+    <link rel="stylesheet" href="<?= $this->url('assets/CSS/style.css') ?>">
     <!-- Style des messages flash -->
-    <link rel="stylesheet" href="<?= $this->url('../assets/CSS/flashMessage.css') ?>">
+    <link rel="stylesheet" href="<?= $this->url('assets/CSS/flashMessage.css') ?>">
 </head>
 
 <body>
@@ -32,13 +32,13 @@
         <div class="header-container">
             <div class="logo">
                 <!-- <div class="logo-icon">TT</div> -->
-                <img class="logo-icon" src="../assets/images/IconTT.png" alt="">
+                <img class="logo-icon" src="assets/images/IconTT.png" alt="">
                 <span class="logo-text">Tom Troc</span>
             </div>
 
             <nav class="nav-center">
-                <a href="<?= $this->url('/') ?>" class="nav-link active">Accueil</a>
-                <a href="<?= $this->url('/livres') ?>" class="nav-link">Nos livres à l'échange</a>
+                <a href="<?= $this->url('/') ?>" class="nav-icon-link active">Accueil</a>
+                <a href="<?= $this->url('/books') ?>" class="nav-icon-link">Nos livres à l'échange</a>
             </nav>
 
             <div class="nav-right">
@@ -59,17 +59,22 @@
 
     <?php $this->renderFlash(); ?>
 
-    <main class="container">
+    <main>
         <?php include $template; ?>
     </main>
 
-    <footer>
-        <div class="mentions-legales">Mentions légales</div>
-        <div class="tom-troc1">Tom Troc©</div>
-        <div class="confidentialite">Politique de confidentialité</div>
-        <img src="../assets/images/GreenIconTomTroc.png" alt="">
+    <footer class="site-footer">
+        <div class="footer-left">
+            <a href="#">Politique de confidentialité</a>
+            <a href="#">Mentions légales</a>
+            <span>Tom Troc©</span>
+        </div>
+        <div class="footer-right">
+            <img src="assets/images/GreenIconTomTroc.png" alt="Logo Tom Troc" />
+        </div>
     </footer>
-    <script src="<?= $this->url('../assets/JS/main.js') ?>" type="module"></script>
+
+    <script src="<?= $this->url('assets/JS/main.js') ?>" type="module"></script>
 </body>
 
 </html>
