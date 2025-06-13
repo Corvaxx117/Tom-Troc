@@ -19,17 +19,19 @@
     </div>
     <div class="books-grid">
         <?php foreach ($books as $book): ?>
-            <div class="book-card">
-                <img src="<?= IMG_PATH . $this->clean($book['image_url'], false) ?>" alt="<?= $this->clean($book['title'], false) ?>">
-                <div class="book-details">
-                    <div class="book-title"><?= $this->clean($book['title'], false) ?></div>
-                    <div class="book-author"><?= $this->clean($book['author'], false) ?></div>
-                    <div class="book-vendor">Vendu par : <?= $this->clean($book['owner_username'], false) ?></div>
-                    <?php if (!$book['is_available']): ?>
-                        <span class="book-badge">non dispo</span>
-                    <?php endif; ?>
+            <a href="<?= $this->url('/books/' . $book['id']) ?>" class="book-card-link">
+                <div class="book-card">
+                    <img src="<?= IMG_PATH . $this->clean($book['image_url'], false) ?>" alt="<?= $this->clean($book['title'], false) ?>">
+                    <div class="book-details">
+                        <div class="book-title"><?= $this->clean($book['title'], false) ?></div>
+                        <div class="book-author"><?= $this->clean($book['author'], false) ?></div>
+                        <div class="book-vendor">Vendu par : <?= $this->clean($book['owner_username'], false) ?></div>
+                        <?php if (!$book['is_available']): ?>
+                            <span class="book-badge">non dispo</span>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
+            </a>
         <?php endforeach; ?>
     </div>
 </section>

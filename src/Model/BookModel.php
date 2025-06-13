@@ -11,22 +11,16 @@ class BookModel extends TableAbstractModel
 {
     protected string $table = 'books';
 
-    /**
-     * Trouve un livre par son ID.
-     * @param int $id L'identifiant du livre
-     * @return array|null Le livre trouvé ou null si aucun livre n'a été trouvé
-     */
     public function findBookById(int $id): ?array
     {
-        return $this->findOneBy(['id' => $id]);
+        return $this->findBy(
+            ['id' => $id],
+            'JOIN users ON books.user_id = users.id',
+            'books.*, users.name AS owner_username, users.avatar AS avatar'
+        );
     }
 
-    /**
-     * Récupère tous les livres d’un utilisateur donné.
-     *
-     * @param int $userId L'ID de l'utilisateur
-     * @return array Liste des livres
-     */
+
     public function findBooksByUser(int $userId, string $sort = 'title', string $dir = 'ASC'): array
     {
         $allowedSorts = ['title', 'author', 'description', 'is_available'];

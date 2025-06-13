@@ -1,0 +1,33 @@
+<section class="book-detail-wrapper">
+    <nav class="breadcrumb">
+        <a href="<?= $this->url('/books') ?>">Nos livres</a> > <?= $this->clean($book['title']) ?>
+    </nav>
+
+    <div class="book-detail-container">
+        <div class="book-image">
+            <img src="<?= IMG_PATH . $this->clean($book['image_url'], false) ?>" alt="<?= $this->clean($book['title']) ?>">
+        </div>
+
+        <div class="book-info">
+            <h1><?= $this->clean($book['title']) ?></h1>
+            <div class="book-author">par <?= $this->clean($book['author']) ?></div>
+
+            <hr>
+
+            <div class="book-section">
+                <h3>Description</h3>
+                <p><?= nl2br($this->clean($book['description'])) ?></p>
+            </div>
+
+            <div class="book-section">
+                <h3>Propriétaire</h3>
+                <div class="owner-info">
+                    <img class="owner-avatar" src="<?= IMG_PATH . ($book['avatar'] ?? 'uploads/avatars/avatar-placeholder.jpg') ?>" alt="Avatar du propriétaire">
+                    <span><?= $this->clean($book['owner_username']) ?></span>
+                </div>
+            </div>
+
+            <a href="#" class="btn-green message-btn">Envoyer un message</a>
+        </div>
+    </div>
+</section>

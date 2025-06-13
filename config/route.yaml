@@ -14,6 +14,11 @@ routes:
     method: GET
     callable: App\Controller\BookController::listAll
 
+  # Affichage d'un livre
+  "/books/:id":
+    method: GET
+    callable: App\Controller\BookController::show
+
   # Formulaire d'inscription
   "/auth/registration":
     method: GET|POST
@@ -44,12 +49,12 @@ routes:
     callable: App\Controller\BookController::create
     method: POST
 
-  # Suppression d'un livre
-  "/account/book/delete/:id":
-    method: POST
-    callable: App\Controller\BookController::delete
-
   # Edition d'un livre
   "/account/book/edit/:id":
     method: GET|POST
     callable: App\Controller\BookController::edit
+
+  # Suppression d'un livre
+  "/account/book/delete/:id":
+    method: POST
+    callable: App\Controller\BookController::delete

@@ -25,6 +25,14 @@ class BookController extends AbstractController
         $this->fileUploader = new FileUploaderService();
     }
 
+    /**
+     * Liste tous les livres disponibles à l'échange.
+     *
+     * Les livres sont triés par ordre alphabétique et les livres non disponibles sont
+     * exclus. La recherche est sensible à la casse.
+     * @param Request $request
+     * @return Response
+     */
     public function listAll(Request $request): Response
     {
         $searchTerm = $request->get('q', '');
@@ -106,6 +114,22 @@ class BookController extends AbstractController
 
         return $this->render('book/new', [
             'title' => 'Ajouter un livre'
+        ]);
+    }
+
+    public function show(Request $request, int $id): Response
+    {
+        $book = $this->bookModel->findBookById($id);
+        // dd($book);
+
+        if (!$book) {
+            $this->flashMessage->add('error', 'Livre introuvable.');
+            return $this->redirect('/books');
+        }
+
+        return $this->render('book/show.phtml', [
+            'title' => $book['title'],
+            'book' => $book
         ]);
     }
 

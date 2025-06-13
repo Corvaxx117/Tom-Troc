@@ -421,6 +421,12 @@ button {
 
 /* Herite des classes book-title, book-author, book-vendor de la 2eme section page home */
 
+.book-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .books-page {
     padding: 4rem 6%;
     background-color: var(--light-bg);
@@ -911,6 +917,104 @@ button {
 .btn-add-book:hover {
     background-color: #3e8e41;
 }
+
+
+/********************************** Page détails d'un livre  **********************************/
+
+
+.book-detail-wrapper {
+    padding: 4rem 10%;
+    background-color: var(--light-bg);
+    font-family: 'Inter', sans-serif;
+}
+
+.breadcrumb {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.breadcrumb a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.book-detail-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4rem;
+    align-items: flex-start;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.book-image {
+    flex: 1 1 40%;
+    text-align: center;
+}
+
+.book-image img {
+    max-width: 100%;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.book-info {
+    flex: 1 1 50%;
+}
+
+.book-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.book-author {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.book-info hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 1.5rem 0;
+}
+
+.book-section {
+    margin-bottom: 2rem;
+}
+
+.book-section h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #777;
+    margin-bottom: 0.5rem;
+}
+
+.book-section p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+.owner-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.owner-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
 
 /********************************** Footer **********************************/
 
