@@ -1,0 +1,37 @@
+<div id="messagingApp" data-user-id="<?= $currentUser->getId() ?>">
+    <section class="messaging-wrapper">
+        <h1 class="page-title">Messagerie</h1>
+
+        <div class="messaging-container">
+            <!-- Liste des conversations -->
+            <aside class="messaging-sidebar">
+                <h2 class="sidebar-title">Conversations</h2>
+                <ul class="conversation-list" id="conversationList">
+                    <?php foreach ($threads as $thread): ?>
+                        <li class="conversation-item" data-thread-id="<?= $thread['thread_id'] ?>">
+                            <div class="conversation-link">
+                                <img src="<?= IMG_PATH . ($thread['participant_avatar'] ?? 'avatars/avatar-placeholder.jpg') ?>" alt="Avatar" class="conversation-avatar">
+                                <div class="conversation-text">
+                                    <span class="conversation-name"><?= $this->clean($thread['participant_name'], false) ?></span>
+                                    <span class="conversation-preview">
+                                        <?= $thread['last_message_deleted']
+                                            ? "<em>Ce message a été supprimé</em>"
+                                            : $this->clean($thread['last_message'], false) ?>
+                                    </span>
+                                </div>
+                                <span class="conversation-time"><?= date('H:i', strtotime($thread['last_message_date'])) ?></span>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </aside>
+
+            <!-- Fenêtre de chat -->
+            <div class="messaging-main" id="messagingMain">
+                <div class="message-empty">
+                    <p>Sélectionnez une conversation pour commencer à discuter.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
