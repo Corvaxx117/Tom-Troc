@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Security\User;
 use App\Model\UserModel;
 use Metroid\FlashMessage\FlashMessage;
 
@@ -17,10 +18,10 @@ class FormValidator
      *
      * @param array $data Données POST
      * @param string $context 'registration' ou 'update'
-     * @param array|null $currentUser L'utilisateur connecté (pour update uniquement)
+     * @param User|null $currentUser L'utilisateur connecté (pour update uniquement)
      * @return array Tableau ['valid' => bool, 'data' => données nettoyées, 'errors' => tableau d'erreurs]
      */
-    public function validateUserData(array $data, string $context = 'registration', ?array $currentUser = null): array
+    public function validateUserData(array $data, string $context = 'registration', ?User $currentUser = null): array
     {
         $username = trim($data['name'] ?? '');
         $email = trim($data['email'] ?? '');
@@ -45,7 +46,7 @@ class FormValidator
         // Vérifie si un utilisateur avec cet email existe déjà (autre que soi-même)
         if (!empty($email)) {
             $existingUser = $this->userModel->findUserByEmail($email);
-            if ($existingUser && (!$currentUser || $existingUser['id'] !== $currentUser['id'])) {
+            if ($existingUser && (!$currentUser || $existingUser['id'] !== $currentUser->getId())) {
                 $errors[] = 'Un utilisateur avec cet email existe déjà.';
             }
         }

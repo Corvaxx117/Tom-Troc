@@ -4,12 +4,12 @@ namespace App\Services;
 
 class FileUploaderService
 {
-    private string $baseDir;
+    private string $baseUploadDir;
     private string $basePublicPath;
 
     public function __construct()
     {
-        $this->baseDir = __DIR__ . '/../../public/assets/images/uploads/';
+        $this->baseUploadDir = __DIR__ . '/../../public/assets/images/uploads/';
         $this->basePublicPath = 'uploads/'; // utilisé avec IMG_PATH
     }
 
@@ -21,28 +21,36 @@ class FileUploaderService
      * @param string $type Dossier cible (avatars, books, etc.)
      * @return string|null
      */
-    public function upload(array $file, ?string $oldFile = null, string $type = 'avatars'): ?string
+    public function upload(array $file, ?string $oldFile = null, string $subfolder = 'avatars'): ?string
     {
-        if (empty($file['tmp_name'])) {
+        // Aucune tentative d’upload (par exemple fichier trop lourd ou rien envoyé)
+        if (
+            empty($file['tmp_name']) ||
+            !isset($file['error']) ||
+            $file['error'] === UPLOAD_ERR_NO_FILE ||
+            $file['error'] === UPLOAD_ERR_INI_SIZE ||
+            $file['error'] === UPLOAD_ERR_FORM_SIZE
+        ) {
             return null;
         }
 
-        $uploadDir = $this->baseDir . $type . '/';
-        $relativePath = $this->basePublicPath . $type . '/';
+        // Gestion du chemin
+        $uploadDir = $this->baseUploadDir . $subfolder . '/';
 
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0775, true);
-        }
-
-        if ($oldFile && file_exists($this->baseDir . $oldFile)) {
-            unlink($this->baseDir . $oldFile);
         }
 
         $filename = uniqid() . '-' . basename($file['name']);
         $targetPath = $uploadDir . $filename;
 
         if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-            return $relativePath . $filename; // ex: uploads/books/filename.jpg
+            // Supprimer l'ancien fichier si fourni
+            if ($oldFile && file_exists($this->baseUploadDir . $oldFile)) {
+                unlink($this->baseUploadDir . $oldFile);
+            }
+
+            return $this->basePublicPath . $subfolder . '/' . $filename;
         }
 
         return null;

@@ -2,14 +2,15 @@
 
 namespace App\Controller;
 
+use App\Security\User;
 use App\Model\BookModel;
 use App\Model\UserModel;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
 use Metroid\View\ViewRenderer;
 use App\Services\FormValidator;
-use App\Services\FileUploaderService;
 use Metroid\Services\AuthService;
+use App\Services\FileUploaderService;
 use Metroid\FlashMessage\FlashMessage;
 use Metroid\Controller\AbstractController;
 
@@ -29,32 +30,29 @@ class AccountController extends AbstractController
         $this->fileUploader = new FileUploaderService();
     }
 
-    /**
-     * Accès à l'espace Mon Compte avec récupération des informations
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function show(Request $request): Response
+    private function redirectIfNotAuthenticated(): ?Response
     {
-        // Vérifie que l'utilisateur est connecté
         if (!AuthService::isAuthenticated()) {
             $this->flashMessage->add('error', 'Vous devez être connecté pour accéder à cette page.');
             return $this->render('auth/login.phtml', [
                 'title' => 'Connexion'
             ], 302);
         }
+        return null;
+    }
 
-        // Récupère l'utilisateur connecté
+    public function show(Request $request): Response
+    {
+        if ($response = $this->redirectIfNotAuthenticated()) {
+            return $response;
+        }
+
+        /** @var User */
         $user = AuthService::getUser();
-
-        // Récupération des livres
         $sort = $request->get('sort', 'title');
         $dir = strtoupper($request->get('dir', 'asc'));
 
-        $books = $this->bookModel->findBooksByUser($user['id'], $sort, $dir);
-        // Compte les livres pour l'affichage
-        $user['book_count'] = count($books);
+        $books = $this->bookModel->findBooksByUser($user->getId(), $sort, $dir);
 
         return $this->render('account/profile.phtml', [
             'title' => 'Mon compte',
@@ -65,13 +63,11 @@ class AccountController extends AbstractController
 
     public function update(Request $request): Response
     {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté pour modifier votre profil.');
-            return $this->render('auth/login.phtml', [
-                'title' => 'Connexion'
-            ], 302);
+        if ($response = $this->redirectIfNotAuthenticated()) {
+            return $response;
         }
 
+        /** @var User */
         $user = AuthService::getUser();
 
         if ($request->isPost()) {
@@ -79,39 +75,28 @@ class AccountController extends AbstractController
             $result = $validator->validateUserData($request->getAllPost(), 'update', $user);
 
             if ($result['valid']) {
-                $userData = $result['data'];
-
-                // Construction des données à mettre à jour
                 $updateData = [
-                    'name' => $userData['name'],
-                    'email' => $userData['email'],
+                    'name' => $result['data']['name'],
+                    'email' => $result['data']['email'],
                 ];
 
-                if (!empty($userData['password'])) {
-                    $updateData['password'] = $userData['password'];
+                if (!empty($result['data']['password'])) {
+                    $updateData['password'] = $result['data']['password'];
                 }
 
-                // GESTION UPLOAD AVATAR
                 if (!empty($_FILES['avatar']['tmp_name'])) {
-                    $avatarPath = $this->fileUploader->upload($_FILES['avatar'], $user['avatar'] ?? null);
+                    $avatarPath = $this->fileUploader->upload($_FILES['avatar'], $user->getAvatar() ?? null);
                     if ($avatarPath) {
                         $updateData['avatar'] = $avatarPath;
                     } else {
                         $this->flashMessage->add('error', 'Erreur lors du téléchargement de la photo de profil.');
                     }
                 }
-                // Mise à jour en base
-                $success = $this->userModel->updateUser($user['id'], $updateData);
 
-                if ($success) {
+                if ($this->userModel->updateUser($user->getId(), $updateData)) {
                     $this->flashMessage->add('success', 'Profil mis à jour avec succès.');
-                    // Met à jour la session avec les nouvelles données
-                    if (!isset($updateData['avatar'])) {
-                        $updateData['avatar'] = $user['avatar'] ?? null;
-                    }
-                    $updatedUser = $this->userModel->findBy(['id' => $user['id']])[0] ?? null;
+                    $updatedUser = $this->userModel->getUserObjectById($user->getId());
                     AuthService::login($updatedUser);
-
                     return $this->show($request);
                 } else {
                     $this->flashMessage->add('error', 'Erreur lors de la mise à jour.');

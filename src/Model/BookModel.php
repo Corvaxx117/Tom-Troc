@@ -13,11 +13,13 @@ class BookModel extends TableAbstractModel
 
     public function findBookById(int $id): ?array
     {
-        return $this->findBy(
-            ['id' => $id],
+        $result = $this->findBy(
+            ['books.id' => $id],
             'JOIN users ON books.user_id = users.id',
             'books.*, users.name AS owner_username, users.avatar AS avatar'
         );
+        // Renvoie le premier livre trouvé
+        return $result[0] ?? null;
     }
 
 

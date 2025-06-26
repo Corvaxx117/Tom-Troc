@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Security\User;
 use Metroid\Database\Model\TableAbstractModel;
 
 /**
@@ -21,14 +22,16 @@ class UserModel extends TableAbstractModel
         return $this->findOneBy(['id' => $id]);
     }
 
-    // /**
-    //  * Récupère tous les utilisateurs.
-    //  * @return array : un tableau d'objets User.
-    //  */
-    // public function findAllUsers(): array
-    // {
-    //     return parent::findAll();
-    // }
+    /**
+     * Renvoie l'utilisateur sous forme d'objet User à partir de son ID.
+     * @param int $id L'identifiant de l'utilisateur
+     * @return User L'utilisateur trouvé
+     */
+    public function getUserObjectById(int $id): User
+    {
+        $data = $this->findUserById($id);
+        return new User($data['id'], $data['name'], $data['email'], $data['is_admin'], $data['avatar']);
+    }
 
     /**
      * Trouve un utilisateur par son email.

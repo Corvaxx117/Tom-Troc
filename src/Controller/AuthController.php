@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use App\Security\User;
 use App\Model\UserModel;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
-use App\Services\FormValidator;
 use Metroid\View\ViewRenderer;
+use App\Services\FormValidator;
 use Metroid\Services\AuthService;
 use Metroid\FlashMessage\FlashMessage;
 use Metroid\Controller\AbstractController;
@@ -24,13 +25,10 @@ class AuthController extends AbstractController
     }
 
     /**
-     * Connexion d'un utilisateur.
-     * Si le formulaire est envoyé  via POST, on vérifie l'email et le mot de passe.
-     * Si les informations sont correctes, on stocke l'utilisateur en session.
-     * On redirige vers la page d'accueil.
-     * Sinon, on affiche le formulaire de connexion.
+     * Affiche le formulaire de connexion ou traite l'envoi du formulaire.
      *
-     * @return Response La réponse HTTP avec redirection.
+     * @param Request $request
+     * @return Response
      */
     public function login(Request $request): Response
     {
@@ -39,52 +37,38 @@ class AuthController extends AbstractController
             $password = $request->getPost('password');
             $user = $this->userModel->findUserByEmail($email);
 
-            if (!$user || !password_verify($password, $user['password'])) {
-                $this->flashMessage->add('error', 'Identifiants invalides.');
-            } else {
-                AuthService::login($user);
+            if ($user && password_verify($password, $user['password'])) {
+                AuthService::login($this->mapToUser($user));
                 $this->flashMessage->add('success', 'Connexion réussie !');
 
-                return $this->render('home.phtml', [
-                    'title' => 'Accueil'
-                ], 200);
+                return $this->render('home.phtml', ['title' => 'Accueil'], 200);
             }
+
+            $this->flashMessage->add('error', 'Identifiants invalides.');
         }
 
-        return $this->render('auth/login.phtml', [
-            'title' => 'Connexion'
-        ], 200);
+        return $this->render('auth/login.phtml', ['title' => 'Connexion'], 200);
     }
 
     /**
-     * Déconnecte l'utilisateur en supprimant les informations de session.
-     * Affiche un message de succès et redirige vers la page d'accueil.
+     * Déconnecte l'utilisateur courant.
      *
-     * @return Response La réponse HTTP avec redirection.
+     * @return Response
      */
-
     public function logout(): Response
     {
         AuthService::logout();
         $this->flashMessage->add('success', 'Vous êtes déconnecté(e).');
 
-        return $this->render('auth/login.phtml', [
-            'title' => 'Connexion'
-        ], 200);
+        return $this->render('auth/login.phtml', ['title' => 'Connexion'], 200);
     }
 
     /**
      * Gère l'inscription d'un nouvel utilisateur.
-     * Vérifie si la requête est de type POST, puis valide les données fournies.
-     * Si les données sont valides et qu'aucun utilisateur n'existe déjà avec l'email fourni,
-     * crée un nouvel utilisateur et affiche un message de succès.
-     * Sinon, affiche les erreurs correspondantes.
-     * Retourne la page d'inscription avec le formulaire et les messages flash.
      *
-     * @param Request $request Requête HTTP contenant les données d'inscription.
-     * @return Response La réponse HTTP avec le formulaire d'inscription ou une redirection.
+     * @param Request $request
+     * @return Response
      */
-
     public function register(Request $request): Response
     {
         if ($request->isPost()) {
@@ -94,25 +78,38 @@ class AuthController extends AbstractController
             if ($result['valid']) {
                 $userData = $result['data'];
                 $success = $this->userModel->createUser([
-                    'name' => $userData['name'],
-                    'email' => $userData['email'],
+                    'name'     => $userData['name'],
+                    'email'    => $userData['email'],
                     'password' => $userData['password'],
                 ]);
 
                 if ($success) {
                     $this->flashMessage->add('success', 'Inscription réussie !');
-
-                    return $this->render('auth/login.phtml', [
-                        'title' => 'Connexion'
-                    ], 200);
-                } else {
-                    $this->flashMessage->add('error', "Une erreur est survenue lors de l'inscription.");
+                    return $this->render('auth/login.phtml', ['title' => 'Connexion'], 200);
                 }
+
+                $this->flashMessage->add('error', "Une erreur est survenue lors de l'inscription.");
             }
         }
 
-        return $this->render('auth/registration.phtml', [
-            'title' => 'Inscription'
-        ], 200);
+        return $this->render('auth/registration.phtml', ['title' => 'Inscription'], 200);
+    }
+
+    /**
+     * Convertit un tableau utilisateur (depuis la base) en instance User.
+     * Evite une requête SQL suplementaire.
+     *
+     * @param array $data
+     * @return User
+     */
+    private function mapToUser(array $data): User
+    {
+        return new User(
+            $data['id'],
+            $data['name'],
+            $data['email'],
+            $data['is_admin'],
+            $data['avatar']
+        );
     }
 }

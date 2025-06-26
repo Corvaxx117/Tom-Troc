@@ -2,14 +2,15 @@
 
 namespace App\Controller;
 
+use App\Model\BookModel;
+use App\Services\FileUploaderService;
+use App\Security\User;
 use Metroid\Controller\AbstractController;
+use Metroid\FlashMessage\FlashMessage;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
-use Metroid\View\ViewRenderer;
-use Metroid\FlashMessage\FlashMessage;
-use App\Model\BookModel;
 use Metroid\Services\AuthService;
-use App\Services\FileUploaderService;
+use Metroid\View\ViewRenderer;
 
 class BookController extends AbstractController
 {
@@ -26,12 +27,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * Liste tous les livres disponibles à l'échange.
-     *
-     * Les livres sont triés par ordre alphabétique et les livres non disponibles sont
-     * exclus. La recherche est sensible à la casse.
-     * @param Request $request
-     * @return Response
+     * Affiche la liste des livres disponibles à l’échange, avec possibilité de recherche.
      */
     public function listAll(Request $request): Response
     {
@@ -45,69 +41,24 @@ class BookController extends AbstractController
         ]);
     }
 
-
     /**
-     * Prépare les données du livre à partir de la requête.
-     * Récupère les informations de l'utilisateur connecté et les données POST.
-     * Gère également le téléchargement de l'image du livre si elle est présente.
-     *
-     * @param Request $request La requête contenant les données du livre.
-     * @return array Les données du livre formatées, prêtes à être sauvegardées.
-     */
-
-    private function prepareBookData(Request $request): array
-    {
-        $user = AuthService::getUser();
-
-        $data = [
-            'user_id' => $user['id'],
-            'title' => trim($request->getPost('title')),
-            'author' => trim($request->getPost('author')),
-            'description' => trim($request->getPost('description')),
-            'is_available' => $request->getPost('is_available') ? 1 : 0,
-            'image_url' => $request->getPost('image_url')
-        ];
-
-        // Gestion de l'image via le FileUploaderService
-        $imagePath = $this->fileUploader->upload($_FILES['image'] ?? [], null, 'books');
-
-        if ($imagePath) {
-            $data['image_url'] = $imagePath;
-        } elseif (!empty($_FILES['image']['tmp_name'])) {
-            $this->flashMessage->add('error', 'Erreur lors du téléchargement de l’image.');
-        }
-
-        return $data;
-    }
-
-    /**
-     * Crée un nouveau livre.
-     * Si le formulaire est envoyé  via POST, on enregistre le livre.
-     * On redirige vers la page Mon Compte.
-     * Sinon, on affiche le formulaire de création de livre.
-     *
-     * @param Request $request
-     * @return Response
+     * Crée un nouveau livre depuis le formulaire.
      */
     public function create(Request $request): Response
     {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté.');
-
-            return $this->redirect('/auth/login');
+        if ($response = $this->requireAuthentication()) {
+            return $response;
         }
 
         if ($request->isPost()) {
-
             $data = $this->prepareBookData($request);
 
-            $success = $this->bookModel->createBook($data);
-
-            if ($success) {
-                $this->flashMessage->add('success', 'Livre ajouté avec succès.');
-            } else {
-                $this->flashMessage->add('error', 'Erreur lors de l’ajout.');
+            if ($response = $this->checkUploadTooLarge($request, '/account')) {
+                return $response;
             }
+
+            $success = $this->bookModel->createBook($data);
+            $this->flashMessage->add($success ? 'success' : 'error', $success ? 'Livre ajouté avec succès.' : 'Erreur lors de l’ajout.');
 
             return $this->redirect('/account');
         }
@@ -117,10 +68,12 @@ class BookController extends AbstractController
         ]);
     }
 
+    /**
+     * Affiche un livre en lecture seule.
+     */
     public function show(Request $request, int $id): Response
     {
         $book = $this->bookModel->findBookById($id);
-        // dd($book);
 
         if (!$book) {
             $this->flashMessage->add('error', 'Livre introuvable.');
@@ -134,41 +87,30 @@ class BookController extends AbstractController
     }
 
     /**
-     * Édite un livre existant.
-     * Si l'utilisateur n'est pas connecté, il est redirigé vers la page de connexion.
-     * Si le livre n'existe pas ou si l'utilisateur n'est pas propriétaire, il est redirigé vers la page Mon Compte.
-     * Les erreurs sont gérées via les messages flash.
-     *
-     * @param Request $request
-     * @param int $id ID du livre à éditer
-     * @return Response
+     * Permet à l'utilisateur connecté d'éditer l'un de ses livres.
      */
     public function edit(Request $request, int $id): Response
     {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté.');
-            return $this->redirect('/auth/login');
+        if ($response = $this->requireAuthentication()) {
+            return $response;
         }
 
         $book = $this->bookModel->findBookById($id);
 
-        if (!$book || $book['user_id'] !== AuthService::getUser()['id']) {
+        if (!$this->assertBookOwnership($book)) {
             $this->flashMessage->add('error', 'Livre introuvable ou accès refusé.');
             return $this->redirect('/account');
         }
 
         if ($request->isPost()) {
+            $data = $this->prepareBookData($request, $book);
 
-            $data = $this->prepareBookData($request);
+            if ($response = $this->checkUploadTooLarge($request, "/account/book/edit/$id")) {
+                return $response;
+            }
 
             $success = $this->bookModel->updateBook($id, $data);
-
-            if ($success) {
-                $this->flashMessage->add('success', 'Livre mis à jour avec succès.');
-                return $this->redirect('/account');
-            } else {
-                $this->flashMessage->add('error', 'Erreur lors de la mise à jour du livre.');
-            }
+            $this->flashMessage->add($success ? 'success' : 'error', $success ? 'Livre mis à jour avec succès.' : 'Erreur lors de la mise à jour.');
 
             return $this->redirect('/account');
         }
@@ -179,37 +121,87 @@ class BookController extends AbstractController
         ]);
     }
 
-
     /**
-     * Supprime un livre via son ID.
-     * Si l'utilisateur n'est pas connecté, il est redirigé vers la page de connexion.
-     * Si la requête est faite via GET, une erreur 404 est levée.
-     * Les erreurs sont gérées via les messages flash.
-     *
-     * @param Request $request
-     * @param int $id ID du livre à supprimer
-     * @return Response
+     * Supprime un livre de la base s'il appartient à l'utilisateur.
      */
     public function delete(Request $request, int $id): Response
     {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté.');
-
-            return $this->redirect('/auth/login');
+        if ($response = $this->requireAuthentication()) {
+            return $response;
         }
 
         try {
-            if ($this->bookModel->deleteBook($id)) {
-                $this->flashMessage->add('success', 'Livre supprimé avec succès.');
-            } else {
-                $this->flashMessage->add('error', 'Erreur lors de la suppression du livre.');
-            }
-
-            return $this->redirect('/account');
+            $success = $this->bookModel->deleteBook($id);
+            $this->flashMessage->add($success ? 'success' : 'error', $success ? 'Livre supprimé avec succès.' : 'Erreur lors de la suppression du livre.');
         } catch (\Throwable $e) {
             $this->flashMessage->add('error', 'Une erreur est survenue : ' . $e->getMessage());
-
-            return $this->redirect('/account');
         }
+
+        return $this->redirect('/account');
+    }
+
+    // ----------------------------
+    // Méthodes utilitaires privées
+    // ----------------------------
+
+    /**
+     * Prépare les données du livre depuis le formulaire.
+     */
+    private function prepareBookData(Request $request, array $existingBook = []): array
+    {
+        /** @var User $user */
+        $user = AuthService::getUser();
+
+        $data = [
+            'user_id' => $user->getId(),
+            'title' => trim($request->getPost('title')),
+            'author' => trim($request->getPost('author')),
+            'description' => trim($request->getPost('description')),
+            'is_available' => $request->getPost('is_available') ? 1 : 0,
+            'image_url' => $this->handleBookImageUpload($existingBook)
+        ];
+
+        return $data;
+    }
+
+    /**
+     * Gère l'upload ou le fallback de l'image du livre.
+     */
+    private function handleBookImageUpload(array $existingBook = []): ?string
+    {
+        $image = $_FILES['image'] ?? [];
+
+        if (!empty($image['tmp_name'])) {
+            $imagePath = $this->fileUploader->upload($image, $existingBook['image_url'] ?? null, 'books');
+
+            if (!$imagePath) {
+                $this->flashMessage->add('error', 'Erreur lors du téléchargement de l’image.');
+            }
+
+            return $imagePath;
+        }
+
+        return $existingBook['image_url'] ?? null;
+    }
+
+    /**
+     * Vérifie que l'utilisateur est connecté. Sinon redirige.
+     */
+    private function requireAuthentication(string $redirectUrl = '/auth/login'): ?Response
+    {
+        if (!AuthService::isAuthenticated()) {
+            $this->flashMessage->add('error', 'Vous devez être connecté.');
+            return $this->redirect($redirectUrl);
+        }
+
+        return null;
+    }
+
+    /**
+     * Vérifie que le livre appartient à l'utilisateur connecté.
+     */
+    private function assertBookOwnership(?array $book): bool
+    {
+        return $book && $book['user_id'] === AuthService::getUser()->getId();
     }
 }
