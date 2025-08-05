@@ -12,7 +12,6 @@ Le projet repose sur le framework **Metroid**, un micro-framework PHP conçu pou
 - 📚 Gestion des livres (ajout, édition, suppression, image upload)
 - 💬 Système complet de messagerie (création de threads, envoi/suppression de messages)
 - 📁 Upload de fichiers avec `FileUploaderService`
-- 📬 Gestion des notifications Firebase (via `kreait/firebase-bundle`)
 - 🧲 Validation des formulaires centralisée (`BookFormValidator`, etc.)
 - 🧠 Conteneur de services avec autowiring automatique via Reflection
 - 🛠 Architecture MVC propre et découpée (controller, model, service, view)
