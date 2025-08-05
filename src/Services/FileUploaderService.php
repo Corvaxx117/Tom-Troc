@@ -23,17 +23,6 @@ class FileUploaderService
      */
     public function upload(array $file, ?string $oldFile = null, string $subfolder = 'avatars'): ?string
     {
-        // Aucune tentative d’upload (par exemple fichier trop lourd ou rien envoyé)
-        if (
-            empty($file['tmp_name']) ||
-            !isset($file['error']) ||
-            $file['error'] === UPLOAD_ERR_NO_FILE ||
-            $file['error'] === UPLOAD_ERR_INI_SIZE ||
-            $file['error'] === UPLOAD_ERR_FORM_SIZE
-        ) {
-            return null;
-        }
-
         // Gestion du chemin
         $uploadDir = $this->baseUploadDir . $subfolder . '/';
 
