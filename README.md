@@ -2,7 +2,23 @@
 
 TomTroc est une application web développée dans le cadre de la formation OpenClassRooms. Elle permet aux utilisateurs de gérer une bibliothèque personnelle, d’échanger des livres, et de communiquer via un système de messagerie intégré.
 
-Le projet repose sur le framework **Metroid**, un micro-framework PHP conçu pour les projets pédagogiques et modulaires.
+Le projet repose sur le framework Metroid, un micro-framework PHP conçu de mes mains pour les projets pédagogiques et modulaires.
+
+Metroid fournit une base légère mais puissante pour concevoir des applications web MVC. Il centralise des composants essentiels comme :
+
+Le routing (gestion des routes dynamiques via YAML)
+
+Le lancement de l'application (via Launcher)
+
+Un conteneur de services avec autowiring basé sur la réflexion PHP (ReflectionClass)
+
+Des objets Request et Response personnalisés, pour gérer les requêtes HTTP comme dans Symfony
+
+Un moteur de rendu de vues (ViewRenderer) basé sur des fichiers .phtml
+
+Une gestion centralisée des erreurs (ErrorHandler) avec rendu propre et code HTTP adapté
+
+Le framework a été pensé pour rendre l’architecture claire, extensible, testable, et facilement compréhensible même dans un contexte pédagogique. Il est utilisé comme socle pour TomTroc et d'autres projets OpenClassRooms. Il peut être une base pour d'autres projets de sites internet hors cadre de formation ne nécéssitant pas un framework 'lourd' tel que Symfony.
 
 ---
 
@@ -42,6 +58,7 @@ Le projet utilise :
 ├── src/
 │   ├── Controller/        # Contrôleurs principaux
 │   ├── Model/             # Accès aux données
+│   ├── Security/          # Objets accessibles comme entité
 │   ├── Services/          # Services (Uploader, Validator...)
 │   ├── Form/              # Formulaires et validateurs
 │   └── View/              # Rendu des vues (via ViewRenderer)
