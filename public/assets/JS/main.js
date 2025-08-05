@@ -15,26 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let messenger = null;
 
   const messagingApp = document.getElementById("messagingApp");
+  if (!messagingApp) return;
 
-  if (messagingApp) {
-    const currentUserId = messagingApp.dataset.userId;
-    if (currentUserId) {
-      const messenger = new Messenger(parseInt(currentUserId, 10));
-    } else {
-      console.warn("User ID non trouvé dans data-user-id.");
-    }
+  const currentUserId = messagingApp.dataset.userId;
+  if (currentUserId) {
+    new Messenger(parseInt(currentUserId, 10));
   } else {
-    console.warn("messagingApp introuvable.");
+    console.warn("User ID non trouvé dans data-user-id.");
   }
 });
-
-// document.addEventListener("mousemove", function (e) {
-//   let x = (e.clientX / window.innerWidth) * 100;
-//   let y = (e.clientY / window.innerHeight) * 100;
-
-//   document.documentElement.style.setProperty("--mouse-x", x + "%");
-//   document.documentElement.style.setProperty("--mouse-y", y + "%");
-// });
 
 document.querySelectorAll(".custom-alert").forEach((alert) => {
   setTimeout(() => {

@@ -194,6 +194,27 @@ button {
     border-radius: 1rem;
 }
 
+/****** Utilisateur si conncecté ******/
+
+.user-info-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1rem;
+}
+
+.avatar-mini {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #333;
+}
+
 /************************************* PAGE HOME **************************/
 
 /************** Première Section **************/
@@ -258,7 +279,7 @@ button {
 /****************  Deuxième Section ('Les derniers livres ajoutés')  **************/
 
 
-.last-books-section {
+.latest-books-section {
     background-color: var(--white-bg);
     margin: auto;
     padding: 2rem 0;
@@ -278,26 +299,25 @@ button {
     padding: 0 2rem;
 }
 
+.books-grid a {
+    text-decoration: none;
+}
+
 .book-card {
-    background: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     width: 200px;
     height: auto; 
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 0;
-    transition: transform 0.2s;
-}
-
-.book-card:hover {
-    transform: translateY(-4px);
+    padding: 10px;
 }
 
 .book-card img {
     width: 200px;
     height: 200px; 
     object-fit: cover;
+    border-radius: 12px;
 }
 
 .book-details {
@@ -305,13 +325,15 @@ button {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;}
+    justify-content: space-between;
+}
 
 .book-title {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-dark);
     margin-bottom: 0.25rem;
+    text-decoration: none;
 }
 
 .book-author {
@@ -891,8 +913,7 @@ button {
     margin: 10% auto;
     padding: 20px;
     border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
+    width: 70%;
     position: relative;
 }
 
@@ -912,10 +933,6 @@ button {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-}
-
-.btn-add-book:hover {
-    background-color: #3e8e41;
 }
 
 
@@ -1016,6 +1033,345 @@ button {
 }
 
 
+/********************************** Page de profil public **********************************/
+
+.profile-public-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    padding: 3rem 2rem;
+    flex-wrap: wrap;
+}
+
+.profile-box {
+    width: 260px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.avatar-wrapper {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+}
+
+.separator {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 1rem 0;
+}
+
+.profile-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.profile-since {
+    font-size: 0.9rem;
+    color: #777;
+    text-align: center;
+}
+
+.profile-library {
+    text-align: center;
+}
+
+.profile-library .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 0.2rem;
+}
+
+.profile-library .value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.profile-msg-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.7rem 1.2rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-align: center;
+    width: 70%;
+}
+
+.library-box {
+    flex: 1;
+    min-width: 500px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.books-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.books-table th, .books-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.95rem;
+}
+
+.books-table th {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: #888;
+    letter-spacing: 0.5px;
+}
+
+.books-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+
+/********************************** Messagerie **********************************/
+
+/* Conteneur principal de la messagerie */
+.messaging-container {
+    display: flex;
+    height: calc(100vh - 100px);
+    background-color: #f7f6f2;
+    border: none;
+  }
+
+  /* Avatar de l'interlocuteur */
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem 0 1.5rem;
+    background-color: #fafafa;
+}
+
+.chat-header .conversation-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-header .chat-username {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #292929;
+}
+
+/* Partie gauche : liste des conversations */
+
+.messaging-sidebar {
+    width: 300px;
+    min-width: 300px;
+    background-color: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.sidebar-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.conversation-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.conversation-item {
+    margin-bottom: 1rem;
+}
+
+.conversation-link {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 10px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.conversation-link:hover,
+.conversation-item.active .conversation-link {
+    background-color: #f1f1f1;
+}
+
+.conversation-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 60%;
+    object-fit: cover;
+    margin-right: 0.8rem;
+    flex-shrink: 0;
+}
+
+.conversation-text,
+.conversation-time,
+.message-time,
+.conversation-preview, 
+.conversation-name {
+    font-family: 'Inter', sans-serif;
+}
+
+.conversation-text {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.conversation-name {
+    font-weight: 600;
+    line-height: 1.1;
+    color: #000;
+    display: block;
+    font-size: 0.95rem;
+}
+
+.conversation-preview {
+    line-height: 1.2;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conversation-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0 0 20px auto;
+}
+
+/* Partie droite : messages */
+.messaging-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background-color: #fafafa;
+    overflow: hidden;
+}
+
+/* Zone de messages */
+.message-thread {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;   
+}
+
+.message-content {
+    margin: 0 1rem;
+}
+
+
+/* Message utilisateur (envoyé) */
+.message-item.sent {
+    align-self: flex-end;
+    background-color: #e5f0ff;
+    border-radius: 16px 16px 0 16px;
+    margin-bottom: 1rem;
+    max-width: 60%;
+}
+
+/* Message reçu */
+.message-item.received {
+    align-self: flex-start;
+    background-color: #fff;
+    border-radius: 16px 16px 16px 0;
+    margin-bottom: 1rem;
+    max-width: 70%;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+
+/* Formulaire d’envoi de message */
+.message-form {
+    display: flex;
+    padding: 1rem;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+}
+
+.message-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    outline: none;
+    margin-right: 1rem;
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #888;
+    margin: 0 0 4px 0;
+    padding: 0 10px;
+}
+
+.message-meta .delete-link {
+    text-decoration: none;
+    color: #888;
+    font-style: italic;
+    cursor: pointer;
+}
+
+.message-meta .delete-link:hover {
+    color: #000;
+    text-decoration: underline;
+}
+
+.message-time {
+    margin : 0 12px 0 auto;
+}
+
+.btn-send-message {
+    margin-top: 0;
+}
+
+
 /********************************** Footer **********************************/
 
 
@@ -1053,4 +1409,3 @@ button {
     width: 30px;
     height: auto;
 }
-

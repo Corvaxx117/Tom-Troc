@@ -16,34 +16,65 @@ export default class Messenger {
     const list = document.getElementById("conversationList");
     if (!list) return;
 
-    list.addEventListener("click", (e) => {
-      const item = e.target.closest(".conversation-item"); // Trouve l’élément cliqué
-      if (item) {
+    // Attache un event listener à chaque item
+    const items = list.querySelectorAll(".conversation-item");
+    items.forEach((item) => {
+      item.addEventListener("click", (e) => {
         e.preventDefault();
-        const threadId = item.getAttribute("data-thread-id"); // Récupère l’ID du thread
-        this.loadThread(threadId); // Charge les messages de cette conversation
-      }
+        this.loadThread(item);
+      });
     });
+
+    // Gestion du hash de l’URL (ex : #thread-4)
+    const hash = window.location.hash;
+    if (hash.startsWith("#thread-")) {
+      const threadId = hash.replace("#thread-", "");
+      const item = document.querySelector(`.conversation-item[data-thread-id="${threadId}"]`);
+      if (item) {
+        this.loadThread(item);
+      } else {
+        console.warn("Aucune conversation trouvée pour le hash:", threadId);
+      }
+    }
+  }
+
+  /**
+   * Met à jour l'en-tête de la conversation en fonction de l'élément item cliqué
+   * @param {HTMLElement} item - Élément de la liste de conversations qui a été cliqué
+   */
+  updateChatHeader(item) {
+    const name = item.dataset.name;
+    const avatar = item.dataset.avatar;
+
+    const header = document.querySelector(".chat-header");
+    const img = header.querySelector(".conversation-avatar");
+    const span = header.querySelector(".chat-username");
+
+    if (img && avatar) img.src = avatar;
+    if (span && name) span.textContent = name;
   }
 
   /**
    * Charge les messages d'un thread spécifique via fetch
    * @param {number} threadId - ID du thread à charger
    */
-  async loadThread(threadId) {
-    // On vérifie que le serveur a bien répondu un contenu JSON.
+  async loadThread(item) {
+    this.updateChatHeader(item);
+    const threadId = item.dataset.threadId;
     try {
-      // Requête AJAX pour charger les messages
-      const response = await fetch(`${BASE_URL}/messages/thread/${threadId}`);
+      const response = await fetch(`${BASE_URL}/thread/${threadId}/messages`);
       const contentType = response.headers.get("content-type");
       if (!response.ok || !contentType?.includes("application/json")) {
         throw new Error("Réponse non valide");
       }
-
-      const data = await response.json(); // On transforme la réponse JSON
-      this.renderMessages(data.messages, threadId); // Affiche les messages dans le HTML
+      const data = await response.json();
+      this.renderMessages(data.messages, threadId, data.interlocutor);
     } catch (error) {
-      this.messagingMain.innerHTML = "<p class='error'>Erreur de chargement des messages.</p>";
+      this.messagingMain.textContent = ""; // nettoyage minimal
+      const errorP = document.createElement("p");
+      errorP.className = "error";
+      errorP.textContent = "Erreur de chargement des messages.";
+      this.messagingMain.appendChild(errorP);
       console.error("Erreur chargement thread:", error);
     }
   }
@@ -52,29 +83,48 @@ export default class Messenger {
    * Affiche tous les messages et attache les événements aux formulaires et liens de suppression
    * @param {Array} messages - Liste des messages à afficher
    * @param {number} threadId - ID du thread courant
+   * @param {Object|null} interlocutor - Données de l'interlocuteur (nom, avatar)
    */
   renderMessages(messages, threadId) {
-    // On injecte le fil de discussion + le formulaire dans la page.
+    const threadContainer = document.getElementById("messageThread");
+    const formWrapper = document.querySelector(".message-form-wrapper");
 
-    // !!! Eviter innerHTML !!! , passer par un template (objet de l'api js utilisée pour injecter du contenu)
-    //  ou create Element / append ?
-    this.messagingMain.innerHTML = `
-      <div class="message-thread" id="messageThread">
-        ${messages.map((msg) => this.renderMessageItem(msg)).join("")}
-      </div>
-      <form action="${BASE_URL}/messages/${threadId}/send" method="POST" class="message-form">
-        <input type="text" name="content" class="message-input" placeholder="Tapez votre message ici" required>
-        <button type="submit" class="btn-green">Envoyer</button>
-      </form>
-    `;
+    // Nettoie uniquement les parties dynamiques
+    while (threadContainer.firstChild) threadContainer.removeChild(threadContainer.firstChild);
+    while (formWrapper.firstChild) formWrapper.removeChild(formWrapper.firstChild);
 
-    // Gère la soumission du formulaire d'envoi de message
-    const form = this.messagingMain.querySelector(".message-form");
+    // Injecte les messages
+    messages.forEach((msg) => {
+      const messageEl = this.renderMessageItem(msg);
+      threadContainer.appendChild(messageEl);
+    });
+
+    // Création du formulaire
+    const form = document.createElement("form");
+    form.className = "message-form";
+    form.method = "POST";
+    form.action = `${BASE_URL}/thread/${threadId}/send`;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.name = "content";
+    input.className = "message-input";
+    input.placeholder = "Tapez votre message ici";
+    input.required = true;
+
+    const button = document.createElement("button");
+    button.type = "submit";
+    button.className = "btn-green btn-send-message";
+    button.textContent = "Envoyer";
+
+    form.appendChild(input);
+    form.appendChild(button);
+    formWrapper.appendChild(form);
+
     form.addEventListener("submit", (e) => this.sendMessage(e, threadId));
 
-    // Ajoute les événements de suppression aux liens 'suppr.'
-    const deleteLinks = this.messagingMain.querySelectorAll(".delete-link");
-    deleteLinks.forEach((link) => {
+    // Liens de suppression
+    threadContainer.querySelectorAll(".delete-link").forEach((link) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
         const messageId = link.getAttribute("data-message-id");
@@ -83,110 +133,70 @@ export default class Messenger {
       });
     });
 
-    // Fait défiler la zone de messages tout en bas
-    const threadContainer = this.messagingMain.querySelector("#messageThread");
-    if (threadContainer) {
-      threadContainer.scrollTo({ top: threadContainer.scrollHeight, behavior: "smooth" });
-    }
+    // Scroll automatique en bas
+    threadContainer.scrollTo({
+      top: threadContainer.scrollHeight,
+      behavior: "smooth",
+    });
   }
 
   /**
-   * Génère le HTML pour un message individuel dans le thread
+   * Génère le DOM pour un message individuel dans le thread
    * @param {Object} msg - Le message à afficher
-   * @return {string} - HTML du message
+   * @return {DocumentFragment}
    */
   renderMessageItem(msg) {
-    const isSent = msg.auteur === this.currentUserId; // Est-ce que le message vient de moi ?
-    const isDeleted = msg.is_deleted == 1; // S'il est supprimé, le contenu est vide
-    const formattedTime = this.formatTime(msg.sent_at); // On formate la date d’envoi
+    const isSent = msg.auteur === this.currentUserId;
+    const isDeleted = msg.is_deleted == 1;
+    const formattedTime = this.formatTime(msg.sent_at);
 
-    // Affichage des métadonnées (heure et lien suppr.)
-    const metaSection = `
-      <div class="message-meta">
-        <span class="message-time">${formattedTime}</span>
-        ${
-          isSent && !isDeleted
-            ? `<a href="#" class="delete-link" data-message-id="${msg.id}" data-thread-id="${msg.thread_id}"><em>suppr.</em></a>`
-            : ""
-        }
-      </div>
-    `;
+    const fragment = document.createDocumentFragment();
 
-    // Affichage de la bulle du message
-    const messageBubble = `
-      <div class="message-item ${isSent ? "sent" : "received"}">
-        <p class="message-content">${
-          isDeleted ? "<em>Ce message a été supprimé</em>" : msg.content
-        }</p>
-      </div>
-    `;
-    // On renvoie les deux blocs HTML concaténés
-    return metaSection + messageBubble;
-  }
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
 
-  /**
-   * Envoie un message au serveur via fetch
-   * @param {Event} event - L'événement de soumission du formulaire
-   * @param {number} threadId - ID du thread cible
-   */
-  async sendMessage(event, threadId) {
-    event.preventDefault(); // Empêche le formulaire de recharger la page
-    const form = event.target;
-    const input = form.querySelector("input[name='content']");
-    const content = input.value.trim(); // Supprime les espaces inutiles
-    if (!content) return false; // Ne rien envoyer si vide
+    const time = document.createElement("span");
+    time.className = "conversation-time message-time";
+    time.textContent = formattedTime;
+    meta.appendChild(time);
 
-    // Envoi des données au serveur via fetch()
-    try {
-      const response = await fetch(`${BASE_URL}/messages/${threadId}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ content }),
-      });
-
-      const result = await response.json();
-      if (response.ok && result.success) {
-        input.value = ""; // Vide le champ
-        this.loadThread(threadId); // Recharge le thread avec le nouveau message
-      } else {
-        console.error("Échec de l'envoi :", result);
-      }
-    } catch (error) {
-      console.error("Erreur d'envoi du message :", error);
+    if (isSent && !isDeleted) {
+      const deleteLink = document.createElement("a");
+      deleteLink.href = "#";
+      deleteLink.className = "delete-link";
+      deleteLink.dataset.messageId = msg.id;
+      deleteLink.dataset.threadId = msg.thread_id;
+      const em = document.createElement("em");
+      em.textContent = "suppr.";
+      deleteLink.appendChild(em);
+      meta.appendChild(deleteLink);
     }
 
-    return false;
-  }
+    fragment.appendChild(meta);
 
-  /**
-   * Supprime un message donné après confirmation
-   * @param {number} messageId - ID du message à supprimer
-   * @param {number} threadId - ID du thread parent
-   */
-  async deleteMessage(messageId, threadId) {
-    if (!confirm("Supprimer ce message ?")) return;
+    const message = document.createElement("div");
+    message.className = `message-item ${isSent ? "sent" : "received"}`;
 
-    try {
-      const response = await fetch(`${BASE_URL}/messages/delete/${messageId}`, {
-        method: "POST",
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        this.loadThread(threadId); // On recharge les messages
-      } else {
-        console.error("Erreur suppression :", result);
-      }
-    } catch (error) {
-      console.error("Erreur de suppression :", error);
+    const content = document.createElement("p");
+    content.className = "message-content";
+    if (isDeleted) {
+      const em = document.createElement("em");
+      em.textContent = "Ce message a été supprimé";
+      content.appendChild(em);
+    } else {
+      content.textContent = msg.content;
     }
+
+    message.appendChild(content);
+    fragment.appendChild(message);
+
+    return fragment;
   }
 
   /**
    * Formate une date ISO en heure ou date + heure si différent du jour courant
-   * @param {string} isoDate - Date ISO
-   * @returns {string} - Date formatée
+   * @param {string} isoDate
+   * @returns {string}
    */
   formatTime(isoDate) {
     const date = new Date(isoDate);
@@ -196,16 +206,79 @@ export default class Messenger {
       date.getMonth() === now.getMonth() &&
       date.getFullYear() === now.getFullYear();
 
-    // Si c’est aujourd’hui, on montre juste l’heure
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
 
-    if (sameDay) {
-      return `${hours}:${minutes}`;
-    }
-    // Sinon, on affiche aussi le jour/mois
+    if (sameDay) return `${hours}:${minutes}`;
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     return `${day}/${month} ${hours}:${minutes}`;
+  }
+
+  /**
+   * Envoie un message au serveur via fetch
+   * @param {Event} event
+   * @param {number} threadId
+   */
+  async sendMessage(event, threadId) {
+    event.preventDefault();
+
+    const form = event.target;
+    const input = form.querySelector("input[name='content']");
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+      const response = await fetch(`${BASE_URL}/thread/${threadId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ content }),
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        input.value = "";
+
+        const item = document.querySelector(`.conversation-item[data-thread-id="${threadId}"]`);
+        if (item) {
+          this.loadThread(item);
+        } else {
+          console.warn("conversation-item non trouvé pour threadId", threadId);
+        }
+      } else {
+        console.error("Échec de l'envoi:", result);
+      }
+    } catch (error) {
+      console.error("Erreur d'envoi du message:", error);
+    }
+  }
+
+  /**
+   * Supprime un message donné après confirmation
+   * @param {number} messageId
+   * @param {number} threadId
+   */
+  async deleteMessage(messageId, threadId) {
+    if (!confirm("Supprimer ce message ?")) return;
+
+    try {
+      const response = await fetch(`${BASE_URL}/message/${messageId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        const item = document.querySelector(`.conversation-item[data-thread-id="${threadId}"]`);
+        if (item) {
+          this.loadThread(item);
+        } else {
+          console.warn("conversation-item non trouvé pour threadId", threadId);
+        }
+      } else {
+        console.error("Échec de la suppression:", result);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du message:", error);
+    }
   }
 }
