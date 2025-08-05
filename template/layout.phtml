@@ -1,15 +1,21 @@
-<?php
+<!--
 
-/**
- * Template principal de l'application
- */
+ Template principal de l'application
+ ===================================
+Ce fichier est le layout de base de toutes les pages.
+Il définit :
+- L'en-tête HTML commun (head + styles + scripts)
+- Le header avec la navigation principale (logo, liens, connexion...)
+- L'affichage des messages flash éventuels
+- Le contenu principal injecté dynamiquement via `$template`
+- Le footer du site
 
-?>
-
+-->
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
+    <!-- Métadonnées -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Starter webapp Corvaxx">
@@ -27,12 +33,11 @@
 </head>
 
 <body>
-
+    <!-- Header du site -->
     <header class="main-header">
         <div class="header-container">
             <div class="logo">
-                <!-- <div class="logo-icon">TT</div> -->
-                <img class="logo-icon" src="assets/images/IconTT.png" alt="">
+                <img class="logo-icon" src="<?= APP_BASE_URL . '/assets/images/IconTT.png'  ?>" alt="">
                 <span class="logo-text">Tom Troc</span>
             </div>
 
@@ -42,12 +47,19 @@
             </nav>
 
             <div class="nav-right">
-                <a href="<?= $this->url('/messagerie') ?>" class="nav-icon-link">
+                <a href="<?= $this->url('/thread') ?>" class="nav-icon-link">
                     <i class="fa-regular fa-message"></i> Messagerie <span class="badge">1</span>
                 </a>
                 <!-- Si on est connecté, on affiche le bouton de déconnexion, sinon, on affiche le bouton de connexion : -->
                 <?php if ($this->isAuthenticated()): ?>
-                    <a class="nav-icon-link" href="<?= $this->url('account') ?>">Mon profil</a>
+                    <?php if ($user): ?>
+                        <div class="user-info-nav">
+                            <a class="nav-icon-link" style="display: flex; align-items: center;" href="<?= $this->url('account') ?>">
+                                <img src="<?= IMG_PATH . $user->getAvatar() ?? 'uploads/avatars/avatar-placeholder.jpg' ?>" alt="Avatar" class="avatar-mini" style="margin-right: 0.5rem;">
+                                <span class="user-name"><?= $this->clean($user->getName(), false) ?></span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                     <a class="nav-icon-link" href="<?= $this->url('auth/logout') ?>" onclick="return confirm('Etes-vous sur de vouloir vous déconnecter ?')">Déconnexion</a>
                 <?php else: ?>
                     <a class="nav-icon-link" href="<?= $this->url('auth/login') ?>">Connexion</a>
@@ -56,13 +68,13 @@
             </div>
         </div>
     </header>
-
+    <!-- Affichage des messages flash (succès, erreur, etc.) -->
     <?php $this->renderFlash(); ?>
-
+    <!-- Contenu principal de la page injecté dynamiquement -->
     <main>
         <?php include $template; ?>
     </main>
-
+    <!-- Pied de page -->
     <footer class="site-footer">
         <div class="footer-left">
             <a href="#">Politique de confidentialité</a>
@@ -70,9 +82,14 @@
             <span>Tom Troc©</span>
         </div>
         <div class="footer-right">
-            <img src="assets/images/GreenIconTomTroc.png" alt="Logo Tom Troc" />
+            <img src="<?= APP_BASE_URL . '/assets/images/GreenIconTomTroc.png' ?>" alt="Logo Tom Troc" />
         </div>
     </footer>
+
+    <!-- Variables accessibles dans les modules JS -->
+    <script>
+        window.BASE_URL = "<?= rtrim(APP_BASE_URL, '/') ?>";
+    </script>
 
     <script src="<?= $this->url('assets/JS/main.js') ?>" type="module"></script>
 </body>

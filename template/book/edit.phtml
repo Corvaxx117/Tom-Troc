@@ -11,9 +11,9 @@
             <!-- Colonne image -->
             <div class="form-image">
                 <p>Photo de couverture</p>
-                <img src="<?= IMG_PATH . $book['image_url'] ?>" alt="<?= $this->clean($book['title'], false) ?>" class="book-cover-preview">
-                <label for="image" class="change-photo">Modifier la photo</label>
-                <input type="file" name="image" id="image" class="file-input">
+                <img id="bookImagePreview" src="<?= IMG_PATH . $book['image_url'] ?>" alt="<?= $this->clean($book['title'], false) ?>" class="book-cover-preview">
+                <label for="bookImageInput" class="change-photo">Modifier la photo</label>
+                <input type="file" name="image_url" id="bookImageInput" class="file-input" accept="image/*">
             </div>
 
             <!-- Colonne infos -->

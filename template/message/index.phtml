@@ -1,4 +1,15 @@
-<div id="messagingApp" data-user-id="<?= $currentUser->getId() ?>">
+<!--
+    Template "Messagerie utilisateur"
+    =================================
+    Cette page affiche l'interface complète de messagerie :
+    - Liste des conversations existantes (nom, avatar, aperçu, heure du dernier message)
+    - Chargement dynamique des messages d'une conversation sélectionnée (via JS)
+    - Affichage du fil de discussion dans la partie droite
+    - Zone de saisie pour envoyer de nouveaux messages
+    - Chaque conversation est cliquable, avec chargement asynchrone via les attributs data-*
+-->
+
+<div id="messagingApp" data-user-id="<?= $user->getId() ?>">
     <section class="messaging-wrapper">
         <h1 class="page-title">Messagerie</h1>
 
@@ -8,18 +19,29 @@
                 <h2 class="sidebar-title">Conversations</h2>
                 <ul class="conversation-list" id="conversationList">
                     <?php foreach ($threads as $thread): ?>
-                        <li class="conversation-item" data-thread-id="<?= $thread['thread_id'] ?>">
+                        <li class="conversation-item"
+                            data-thread-id="<?= $thread['thread_id'] ?>"
+                            data-name="<?= $this->clean($thread['participant_name'], false, ENT_QUOTES) ?>"
+                            data-avatar="<?= IMG_PATH . $this->clean($thread['participant_avatar'], false, ENT_QUOTES) ?>">
                             <div class="conversation-link">
                                 <img src="<?= IMG_PATH . ($thread['participant_avatar'] ?? 'avatars/avatar-placeholder.jpg') ?>" alt="Avatar" class="conversation-avatar">
                                 <div class="conversation-text">
                                     <span class="conversation-name"><?= $this->clean($thread['participant_name'], false) ?></span>
                                     <span class="conversation-preview">
-                                        <?= $thread['last_message_deleted']
-                                            ? "<em>Ce message a été supprimé</em>"
-                                            : $this->clean($thread['last_message'], false) ?>
+                                        <?php if ($thread['last_message']): ?>
+                                            <?= $this->clean($thread['last_message'], false) ?>
+                                        <?php else: ?>
+                                            <em>Tous les messages ont été supprimés</em>
+                                        <?php endif; ?>
                                     </span>
                                 </div>
-                                <span class="conversation-time"><?= date('H:i', strtotime($thread['last_message_date'])) ?></span>
+                                <span class="conversation-time">
+                                    <?php if (!empty($thread['last_message_date'])): ?>
+                                        <?= date('H:i', strtotime($thread['last_message_date'])) ?>
+                                    <?php else: ?>
+                                        --
+                                    <?php endif; ?>
+                                </span>
                             </div>
                         </li>
                     <?php endforeach; ?>
@@ -28,9 +50,13 @@
 
             <!-- Fenêtre de chat -->
             <div class="messaging-main" id="messagingMain">
-                <div class="message-empty">
-                    <p>Sélectionnez une conversation pour commencer à discuter.</p>
+                <div class="chat-header">
+                    <img src="<?= IMG_PATH . 'uploads/avatars/avatar-placeholder.jpg' ?>" alt="Avatar" class="conversation-avatar">
+                    <span class="chat-username"></span>
                 </div>
+
+                <div class="message-thread" id="messageThread"></div>
+                <div class="message-form-wrapper"></div>
             </div>
         </div>
     </section>

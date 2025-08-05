@@ -1,22 +1,34 @@
+<!--
+    Template "Mon compte"
+    ======================
+    Cette page permet à l'utilisateur connecté de :
+    - Consulter et modifier ses informations personnelles (email, pseudo, mot de passe, avatar)
+    - Visualiser le nombre de livres dans sa bibliothèque
+    - Ajouter un nouveau livre via une fenêtre modale (avec image, titre, auteur, description et disponibilité)
+    - Consulter la liste de ses livres sous forme de tableau, avec tri possible
+    - Éditer ou supprimer chaque livre
+-->
+
 <section class="profile-wrapper">
     <h1>Mon compte</h1>
-
+    <!-- Affichage des informations personnelles -->
     <div class="profile-container">
+        <!-- Formulaire de mise à jour des informations de l'utilisateur -->
         <form method="post" action="<?= $this->url('/account/update') ?>" enctype="multipart/form-data" class="profile-form">
             <div class="profile-left">
                 <div class="profile-avatar">
                     <label for="avatarInput" style="cursor: pointer;">
-                        <img id="avatarPreview" src="<?= IMG_PATH . $user['avatar'] ?>" alt="Avatar utilisateur">
+                        <img id="avatarPreview" src="<?= IMG_PATH . $user->getAvatar() ?>" alt="Avatar utilisateur">
                     </label>
-                    <input type="file" id="avatarInput" name="avatar" accept="image/*" class="file-input" onchange="previewAvatar(this)">
+                    <input type="file" id="avatarInput" name="avatar" accept="image/*" class="file-input">
                     <a href="#" class="edit-avatar" onclick="document.getElementById('avatarInput').click(); return false;">modifier</a>
                 </div>
 
-                <div class="profile-username"><?= $this->clean($user['name'], false) ?></div>
+                <div class="profile-username"><?= $this->clean($user->getName(), false) ?></div>
                 <div class="profile-meta">Membre depuis 1 an</div>
                 <div class="profile-library">
                     <div class="label">Bibliothèque</div>
-                    <div class="value"><i class="fa-solid fa-book"></i> <?= $user['book_count'] ?? 0 ?> livres</div>
+                    <div class="value"><i class="fa-solid fa-book"></i> <?= count($books) ?? 0 ?> livres</div>
                 </div>
             </div>
 
@@ -24,56 +36,69 @@
                 <h2>Vos informations personnelles</h2>
 
                 <label>Adresse email</label>
-                <input type="email" name="email" value="<?= $this->clean($user['email'], false) ?>">
+                <input type="email" name="email" value="<?= $this->clean($user->getEmail(), false) ?>">
 
                 <label>Mot de passe (laissez vide pour ne pas le modifier)</label>
                 <input type="password" name="password" value="">
 
                 <label>Pseudo</label>
-                <input type="text" name="name" value="<?= $this->clean($user['name'], false) ?>">
+                <input type="text" name="name" value="<?= $this->clean($user->getName(), false) ?>">
 
                 <button class="btn-green" type="submit">Enregistrer</button>
             </div>
         </form>
     </div>
+    <!-- Bouton d’ouverture de la modale d'ajout de livre -->
+    <button class="btn-add-book btn-green">+ Ajouter un livre</button>
 </section>
-<!-- Bouton d’ouverture -->
-<button class="btn-add-book" onclick="openModal()">+ Ajouter un livre</button>
 
-<!-- Fenêtre modale d'ajout de livre-->
+<!-- Fenêtre modale d'ajout de livre -->
 <div id="bookModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h2>Ajouter un livre</h2>
+        <span class="close">&times;</span>
+        <h2 class="page-title">Ajouter un livre</h2>
+        <!-- Formulaire d'ajout de livre -->
+        <form action="<?= $this->url('/account/book/create') ?>" method="POST" enctype="multipart/form-data" class="edit-book-form">
+            <div class="form-grid">
 
-        <form action="<?= $this->url('/account/book/create') ?>" method="POST" enctype="multipart/form-data">
-            <label>Titre</label>
-            <input type="text" name="title" required>
+                <!-- Colonne image -->
+                <div class="form-image">
+                    <p>Photo de couverture</p>
+                    <img id="bookImagePreview" src="<?= IMG_PATH ?>/uploads/books/book-placeholder.jpg" alt="Prévisualisation de la couverture" class="book-cover-preview">
+                    <label for="bookImageInput" class="change-photo">Choisir une photo</label>
+                    <input type="file" name="image_url" id="bookImageInput" class="file-input" accept="image/*">
+                </div>
 
-            <label>Auteur</label>
-            <input type="text" name="author" required>
+                <!-- Colonne infos -->
+                <div class="form-fields">
+                    <label for="title">Titre</label>
+                    <input type="text" id="title" name="title" value="<?= $this->clean($formData['title'] ?? '', false) ?>" required>
 
-            <label>Description</label>
-            <textarea name="description"></textarea>
+                    <label for="author">Auteur</label>
+                    <input type="text" id="author" name="author" value="<?= $this->clean($formData['author'] ?? '', false) ?>" required>
 
-            <label>Image de couverture (optionnelle)</label>
-            <input type="file" name="image">
+                    <label for="description">Commentaire</label>
+                    <textarea id="description" name="description" rows="8"><?= $this->clean($formData['description'] ?? '', false) ?></textarea>
 
-            <label>
-                <input type="checkbox" name="is_available" value="1" checked>
-                Disponible à l'échange
-            </label>
+                    <label for="is_available">Disponibilité</label>
+                    <select name="is_available" id="is_available">
+                        <option value="1" <?= (isset($formData['is_available']) && $formData['is_available'] == 1) ? 'selected' : '' ?>>disponible</option>
+                        <option value="0" <?= (isset($formData['is_available']) && $formData['is_available'] == 0) ? 'selected' : '' ?>>non disponible</option>
+                    </select>
 
-            <button type="submit">Ajouter</button>
+                    <button type="submit" class="btn-green">Ajouter</button>
+                </div>
+            </div>
         </form>
     </div>
 </div>
 
+<!-- Tableau listant les livres ajoutés par l'utilisateur -->
 <section class="profile-wrapper">
     <table id="books-table" class="books-table">
         <thead>
             <tr>
-                <th>Photo</th>
+                <th>Photo de couverture</th>
                 <th>
                     <a class="hover-link" href="<?= $this->url('/account', ['sort' => 'title', 'dir' => $this->toggleSort('title')]) ?>#books-table">
                         Titre <?= $this->sortIcon('title') ?>
@@ -94,6 +119,7 @@
             </tr>
         </thead>
         <tbody>
+            <!-- Affichage des livres existants (si présents) -->
             <?php if (!empty($books)): ?>
                 <?php foreach ($books as $index => $book): ?>
                     <tr class="table-row <?= $index % 2 === 0 ? 'even' : 'odd' ?>">
@@ -123,32 +149,14 @@
     </table>
 
 </section>
-
-<script>
-    function previewAvatar(input) {
-        const preview = document.getElementById('avatarPreview');
-        const file = input.files[0];
-
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = e => preview.src = e.target.result;
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function openModal() {
-        document.getElementById('bookModal').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('bookModal').style.display = 'none';
-    }
-
-    // Fermer si on clique à l’extérieur de la boîte
-    window.onclick = function(event) {
-        const modal = document.getElementById('bookModal');
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    }
-</script>
+<!-- Script pour afficher la modale automatiquement si nécessaire -->
+<?php if (!empty($openModal)): ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('bookModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        });
+    </script>
+<?php endif; ?>

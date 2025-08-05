@@ -1,0 +1,59 @@
+<!--
+    Template "Profil public d'un utilisateur"
+    =========================================
+    Cette page permet d'afficher le profil public d'un utilisateur (autre que soi-même), incluant :
+    - Son avatar, nom et date d'inscription
+    - Le nombre de livres dans sa bibliothèque
+    - Un bouton pour lui envoyer un message privé (si ce n'est pas le profil de l'utilisateur connecté)
+    - La liste de ses livres (photo de couverture, titre, auteur, description)
+-->
+
+<section class="profile-public-layout">
+    <!-- Encadré de gauche : profil utilisateur -->
+    <div class="profile-box">
+        <div class="avatar-wrapper">
+            <img src="<?= IMG_PATH . ($owner['avatar'] ?? 'uploads/avatars/avatar-placeholder.jpg') ?>" alt="Avatar utilisateur" class="avatar-img">
+        </div>
+        <hr class="separator">
+
+        <div class="profile-name"><?= $this->clean($owner['name'], false) ?></div>
+        <div class="profile-since">Membre depuis 1 an</div>
+
+        <div class="profile-library">
+            <div class="label">Bibliothèque</div>
+            <div class="value"><i class="fa-solid fa-book"></i> <?= count($books) ?> livres</div>
+        </div>
+
+        <?php if ($currentUserId !== $owner['id']): ?>
+            <a class="btn-green profile-msg-btn" href="<?= $this->url('/message/new', ['to' => $owner['id']]) ?>">
+                Écrire un message
+            </a>
+        <?php endif; ?>
+    </div>
+
+    <!-- Encadré de droite : livres -->
+    <div class="library-box">
+        <table class="books-table">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Titre</th>
+                    <th>Auteur</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($books as $book): ?>
+                    <tr class="table-row">
+                        <td>
+                            <img src="<?= IMG_PATH . $this->clean($book['image_url'], false) ?>" alt="<?= $this->clean($book['title'], false) ?>" class="book-cover">
+                        </td>
+                        <td><?= $this->clean($book['title'], false) ?></td>
+                        <td><?= $this->clean($book['author'], false) ?></td>
+                        <td><?= $this->clean($this->truncate($book['description'], 10), false, $book['description']) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</section>

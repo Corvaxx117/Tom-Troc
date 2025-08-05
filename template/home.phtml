@@ -1,10 +1,13 @@
-<?php
-
-/**
- * Fichier : template/home.phtml
- * Rôle : Vue d'accueil injectée dans layout.phtml
- */
-?>
+<!--
+    Template "Page d'accueil"
+    =========================
+    Page d’accueil publique du site Tom Troc.
+    Contient :
+    - Une section d’introduction incitant les visiteurs à rejoindre la plateforme
+    - Un aperçu des derniers livres ajoutés, affichés sous forme de grille
+    - Une explication du fonctionnement du site (étapes de l’échange de livres)
+    - Une présentation des valeurs de l'association Tom Troc (partage, communauté, découverte)
+-->
 
 <!-- SECTION REJOIGNEZ NOUS -->
 <section class="welcome-section">
@@ -14,7 +17,7 @@
             Donnez une nouvelle vie à vos livres en les échangeant avec d'autres amoureux de la lecture.
             Nous croyons en la magie du partage de connaissances et d’histoires à travers les livres.
         </p>
-        <a href="#" class="btn-green">Découvrir</a>
+        <a href="<?= $this->url('/books') ?>" class="btn-green">Découvrir</a>
     </div>
     <div class="welcome-image">
         <img src="<?= $this->url('assets/images/lib1.jpg') ?>" alt="Hamza" />
@@ -22,45 +25,22 @@
     </div>
 </section>
 
-<!-- SECTION DERNIERS LIVRES -->
-<section class="last-books-section">
-    <h2 class="h2-center">Les derniers livres ajoutés</h2>
+<!-- DERNIERS LIVRES AJOUTES -->
+<section class="latest-books-section">
+    <h2 class="h2-center">Derniers livres ajoutés</h2>
     <div class="books-grid">
-        <div class="book-card">
-            <img src="<?= $this->url('assets/images/esther.jpg') ?>" alt="Esther" />
-            <div class="book-details">
-                <h3>Esther</h3>
-                <p class="book-author">Alabaster</p>
-                <small class="book-vendor">Vendu par : CamilleCluckLT</small>
-            </div>
-        </div>
-        <div class="book-card">
-            <img src="<?= $this->url('assets/images/kinfolk.jpg') ?>" alt="The Kinfolk Table" />
-            <div class="book-details">
-                <h3>The Kinfolk Table</h3>
-                <p class="book-author">Nathan Williams</p>
-                <small class="book-vendor">Vendu par : Nathalie</small>
-            </div>
-        </div>
-        <div class="book-card">
-            <img src="<?= $this->url('assets/images/wabi.jpg') ?>" alt="Wabi Sabi" />
-            <div class="book-details">
-                <h3>Wabi Sabi</h3>
-                <p class="book-author">Beth Kempton</p>
-                <small class="book-vendor">Vendu par : Alexlecture</small>
-            </div>
-        </div>
-        <div class="book-card">
-            <img src="<?= $this->url('assets/images/milk.jpg') ?>" alt="Milk & honey" />
-            <div class="book-details">
-                <h3>Milk & honey</h3>
-                <p class="book-author">Rupi Kaur</p>
-                <small class="book-vendor">Vendu par : Hugo1980L72</small>
-            </div>
-        </div>
-    </div>
-    <div class="btn-wrapper">
-        <a href="#" class="btn-green">Voir tous les livres</a>
+        <?php foreach ($latestBooks as $book): ?>
+            <a href="<?= $this->url('/books/:id', ['id' => $book['id'] ?? '']) ?>">
+                <div class="book-card hover-2">
+                    <img src="<?= IMG_PATH . $book['image_url'] ?? 'uploads/books/book-placeholder.jpg' ?>" alt="<?= $this->clean($book['title'], false) ?>">
+                    <div class="book-details">
+                        <h3><?= $this->clean($book['title'], false) ?></h3>
+                        <p class="book-author"><?= $this->clean($book['author'], false) ?></p>
+                        <small class="book-vendor">Vendu par : <?= $this->clean($book['author'], false) ?></small>
+                    </div>
+                </div>
+            </a>
+        <?php endforeach; ?>
     </div>
 </section>
 
@@ -70,8 +50,7 @@
     <p class="text-info-center">Échanger des livres avec TomTroc c’est simple et amusant ! Suivez ces étapes pour commencer :</p>
     <div class="info-card-container">
         <div class="info-card hover-2">
-            <p>Inscrivez-vous gratuitement sur
-                notre plateforme.</p>
+            <p>Inscrivez-vous gratuitement sur notre plateforme.</p>
         </div>
         <div class="info-card hover-2">
             <p>Ajoutez les livres que vous souhaitez échanger à votre profil.</p>
@@ -84,7 +63,7 @@
         </div>
     </div>
     <div class="btn-wrapper">
-        <a href="#" class="btn-green">Voir tous les livres</a>
+        <a href="<?= $this->url('/books') ?>" class="btn-green">Voir tous les livres</a>
     </div>
 </section>
 

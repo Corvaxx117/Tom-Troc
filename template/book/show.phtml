@@ -1,6 +1,16 @@
+<!--
+    Template "Détail d'un livre"
+    ============================
+    Cette page affiche les informations complètes d’un livre sélectionné :
+    - Son titre, sa couverture, son auteur et sa description
+    - Le nom et l’avatar de son propriétaire (avec lien vers son profil)
+    - Un bouton pour envoyer un message au propriétaire (si ce n’est pas soi-même)
+    - Un fil d’Ariane (breadcrumb) en haut pour revenir à la liste des livres
+-->
+
 <section class="book-detail-wrapper">
     <nav class="breadcrumb">
-        <a href="<?= $this->url('/books') ?>">Nos livres</a> > <?= $this->clean($book['title']) ?>
+        <a href="<?= $this->url('/books') ?>">Nos livres</a> > <?= $this->clean($book['title'] ?? 'Titre inconnu', false) ?>
     </nav>
 
     <div class="book-detail-container">
@@ -9,8 +19,8 @@
         </div>
 
         <div class="book-info">
-            <h1><?= $this->clean($book['title']) ?></h1>
-            <div class="book-author">par <?= $this->clean($book['author']) ?></div>
+            <h1><?= $this->clean($book['title'] ?? 'Titre inconnu', false)   ?></h1>
+            <div class="book-author">par <?= $this->clean($book['author'] ?? 'Auteur inconnu', false) ?></div>
 
             <hr>
 
@@ -21,13 +31,19 @@
 
             <div class="book-section">
                 <h3>Propriétaire</h3>
-                <div class="owner-info">
-                    <img class="owner-avatar" src="<?= IMG_PATH . ($book['avatar'] ?? 'uploads/avatars/avatar-placeholder.jpg') ?>" alt="Avatar du propriétaire">
-                    <span><?= $this->clean($book['owner_username']) ?></span>
-                </div>
+                <a href="<?= $this->url('/user/' . $book['user_id']) ?>" class="owner-info-link" style="text-decoration: none;">
+                    <div class="owner-info">
+                        <img class="owner-avatar" src="<?= IMG_PATH . ($book['avatar'] ?? 'uploads/avatars/avatar-placeholder.jpg') ?>" alt="Avatar du propriétaire">
+                        <span><?= $this->clean($book['owner_username']) ?></span>
+                    </div>
+                </a>
             </div>
 
-            <a href="#" class="btn-green message-btn">Envoyer un message</a>
+            <?php if ($currentUserId !== $owner['id']): ?>
+                <a class="btn-green profile-msg-btn" href="<?= $this->url('/message/new', ['to' => $owner['id']]) ?>">
+                    Écrire un message
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </section>
