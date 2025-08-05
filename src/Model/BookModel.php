@@ -28,12 +28,13 @@ class BookModel extends TableAbstractModel
         $allowedSorts = ['title', 'author', 'description', 'is_available'];
         $sort = in_array($sort, $allowedSorts) ? $sort : 'title';
         $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
-        $sql = "SELECT * FROM books WHERE user_id = :user_id ORDER BY $sort $dir";
 
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute(['user_id' => $userId]);
-
-        return $stmt->fetchAll();
+        return $this->findBy(
+            ['user_id' => $userId],
+            joinClause: '',
+            select: '*',
+            orderBy: "$sort $dir"
+        );
     }
 
     public function searchAvailableBooks(string $term = ''): array
@@ -71,6 +72,16 @@ class BookModel extends TableAbstractModel
         );
     }
 
+    public function findLatestBooks(int $limit = 4): array
+    {
+        return $this->findBy(
+            criteria: [],
+            joinClause: '',
+            select: '*',
+            orderBy: 'created_at DESC',
+            limit: $limit
+        );
+    }
 
     /**
      * Créé un nouveau livre.
