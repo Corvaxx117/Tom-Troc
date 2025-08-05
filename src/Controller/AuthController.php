@@ -7,21 +7,34 @@ use App\Model\UserModel;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
 use Metroid\View\ViewRenderer;
-use App\Services\FormValidator;
+use App\Services\UserFormValidator;
 use Metroid\Services\AuthService;
 use Metroid\FlashMessage\FlashMessage;
 use Metroid\Controller\AbstractController;
+use App\Form\Validator\Factory\FormValidatorFactory;
+use App\Services\FileUploaderService;
 
+/**
+ * Controleur de gestion de connexion et d'inscription
+ * @package App\Controller
+ */
 class AuthController extends AbstractController
 {
     private UserModel $userModel;
+    private FormValidatorFactory $validatorFactory;
+    private FileUploaderService $fileUploader;
 
     public function __construct(
         ViewRenderer $viewRenderer,
-        FlashMessage $flashMessage
+        FlashMessage $flashMessage,
+        UserModel $userModel,
+        FileUploaderService $fileUploader,
+        FormValidatorFactory $validatorFactory
     ) {
         parent::__construct($viewRenderer, $flashMessage);
-        $this->userModel = new UserModel();
+        $this->userModel = $userModel;
+        $this->validatorFactory = $validatorFactory;
+        $this->fileUploader = $fileUploader;
     }
 
     /**
@@ -41,7 +54,10 @@ class AuthController extends AbstractController
                 AuthService::login($this->mapToUser($user));
                 $this->flashMessage->add('success', 'Connexion réussie !');
 
-                return $this->render('home.phtml', ['title' => 'Accueil'], 200);
+                return $this->render('home.phtml', [
+                    'title' => 'Accueil',
+                    'user' => AuthService::getUser()
+                ], 200);
             }
 
             $this->flashMessage->add('error', 'Identifiants invalides.');
@@ -64,36 +80,57 @@ class AuthController extends AbstractController
     }
 
     /**
-     * Gère l'inscription d'un nouvel utilisateur.
+     * Affiche le formulaire d'inscription ou traite l'envoi du formulaire.
      *
-     * @param Request $request
-     * @return Response
+     * Si le formulaire est envoyé, valide les données, puis les enregistre en base.
+     * Si l'enregistrement est réussi, redirige vers la page de connexion.
+     * Si une erreur est levée, affiche un message d'erreur.
+     *
+     * @param Request $request La requête HTTP.
+     * @return Response La réponse HTTP.
      */
     public function register(Request $request): Response
     {
         if ($request->isPost()) {
-            $validator = new FormValidator($this->flashMessage, $this->userModel);
-            $result = $validator->validateUserData($request->getAllPost(), 'registration');
+            /** @var UserFormValidator $validator */
+            $validator = $this->validatorFactory->make('user', $request);
+            $validator->setEditMode(false);
 
-            if ($result['valid']) {
-                $userData = $result['data'];
-                $success = $this->userModel->createUser([
-                    'name'     => $userData['name'],
-                    'email'    => $userData['email'],
-                    'password' => $userData['password'],
-                ]);
+            if ($validator->isValid()) {
+                $data = $validator->getFormData();
+
+                // Hash du mot de passe
+                $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
+
+                // Gestion de l’avatar (optionnel à l’inscription)
+                $avatar = $request->files['avatar'] ?? null;
+                if (!empty($avatar['tmp_name'])) {
+                    $avatarPath = $this->fileUploader->upload($avatar, null, 'avatars');
+                    if ($avatarPath) {
+                        $data['avatar'] = $avatarPath;
+                    } else {
+                        $this->flashMessage->add('error', 'Erreur lors du téléchargement de l’avatar.');
+                    }
+                }
+
+                $success = $this->userModel->createUser($data);
 
                 if ($success) {
                     $this->flashMessage->add('success', 'Inscription réussie !');
-                    return $this->render('auth/login.phtml', ['title' => 'Connexion'], 200);
+                    return $this->render('auth/login.phtml', ['title' => 'Connexion']);
                 }
 
                 $this->flashMessage->add('error', "Une erreur est survenue lors de l'inscription.");
+            } else {
+                foreach ($validator->getErrors() as $error) {
+                    $this->flashMessage->add('error', $error);
+                }
             }
         }
 
-        return $this->render('auth/registration.phtml', ['title' => 'Inscription'], 200);
+        return $this->render('auth/registration.phtml', ['title' => 'Inscription']);
     }
+
 
     /**
      * Convertit un tableau utilisateur (depuis la base) en instance User.
