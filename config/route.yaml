@@ -39,11 +39,6 @@ routes:
     method: GET
     callable: App\Controller\AccountController::publicProfile
 
-  # Nouvelle conversation ou affichage de la conversation
-  "/message/new":
-    method: GET
-    callable: App\Controller\MessageController::startNewConversation
-
   # Page Mon Compte
   "/account":
     method: GET
@@ -60,7 +55,7 @@ routes:
     method: POST
 
   # Edition d'un livre
-  "/account/book/toto/:toto/edit/:id":
+  "/account/book/edit/:id":
     method: GET|POST
     callable: App\Controller\BookController::edit
 
@@ -69,19 +64,24 @@ routes:
     method: POST
     callable: App\Controller\BookController::delete
 
+  # Nouvelle conversation ou affichage de la conversation
+  "/message/new":
+    method: GET
+    callable: App\Controller\MessageController::startNewConversation
+
   # Page principale : Affiche la liste des threads
   "/thread":
     method: GET
     callable: App\Controller\MessageController::index
 
   # Affichage des messages d’un thread ou envoi d’un nouveau message
-  /thread/:id/messages:
+  /thread/:threadId/messages:
     method: GET|POST
     callable: App\Controller\MessageController::threadMessages
 
   # Suppression d’un message (appel AJAX POST)
   # Method : DELETE
-  "/message/:id":
+  "/message/:messageId":
     method: DELETE
     callable: App\Controller\MessageController::delete
 
