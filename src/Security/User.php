@@ -23,7 +23,8 @@ final class User
         public string $name,
         public string $email,
         public bool $is_admin,
-        public ?string $avatar
+        public ?string $avatar,
+        private ?string $hashedPassword = null
     ) {}
 
     /**
@@ -65,5 +66,26 @@ final class User
     public function getAvatar(): string
     {
         return $this->avatar ?: 'uploads/avatars/avatar-placeholder.jpg';
+    }
+
+    /**
+     * Retourne le mot de passe haché de l'utilisateur, ou null
+     * si le mot de passe n'a pas été défini.
+     *
+     * @return string|null
+     */
+    public function getHashedPassword(): ?string
+    {
+        return $this->hashedPassword;
+    }
+
+    /**
+     * Modifie le mot de passe haché de l'utilisateur.
+     *
+     * @param string $hash Le mot de passe haché.
+     */
+    public function setHashedPassword(string $hash): void
+    {
+        $this->hashedPassword = $hash;
     }
 }

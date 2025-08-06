@@ -11,6 +11,12 @@ class BookModel extends TableAbstractModel
 {
     protected string $table = 'books';
 
+    /**
+     * Retourne un livre par son ID.
+     *
+     * @param int $id L'identifiant du livre à trouver
+     * @return array|null Le livre trouvé, ou null si aucun livre n'a été trouvé
+     */
     public function findBookById(int $id): ?array
     {
         $result = $this->findBy(
@@ -23,6 +29,14 @@ class BookModel extends TableAbstractModel
     }
 
 
+    /**
+     * Retourne la liste des livres d'un utilisateur.
+     *
+     * @param int $userId L'identifiant de l'utilisateur
+     * @param string $sort Nom de la colonne à utiliser pour le tri (par défaut : titre)
+     * @param string $dir Direction du tri (par défaut : ASC)
+     * @return array La liste des livres de l'utilisateur
+     */
     public function findBooksByUser(int $userId, string $sort = 'title', string $dir = 'ASC'): array
     {
         $allowedSorts = ['title', 'author', 'description', 'is_available'];
@@ -37,6 +51,13 @@ class BookModel extends TableAbstractModel
         );
     }
 
+    /**
+     * Recherche les livres disponibles (is_available = 1) contenant le terme de recherche dans leur titre ou leur auteur.
+     * Si le terme de recherche est vide, on retourne tous les livres disponibles avec leur propriétaire.
+     *
+     * @param string $term Le terme de recherche
+     * @return array La liste des livres trouvés
+     */
     public function searchAvailableBooks(string $term = ''): array
     {
         $term = trim($term);
@@ -62,6 +83,11 @@ class BookModel extends TableAbstractModel
     }
 
 
+    /**
+     * Retourne la liste des livres disponibles (is_available = 1) avec leur propriétaire.
+     *
+     * @return array La liste des livres trouvés
+     */
     public function findAvailableBooksWithOwner(): array
     {
         return $this->findBy(
@@ -71,6 +97,16 @@ class BookModel extends TableAbstractModel
             'books.title ASC'
         );
     }
+
+    /**
+     * Retourne les derniers livres ajoutés.
+     *
+     * Cette méthode récupère une liste de livres triés par date de création,
+     * dans l'ordre décroissant, pour afficher les livres les plus récemment ajoutés.
+     *
+     * @param int $limit Le nombre maximum de livres à retourner (par défaut : 4)
+     * @return array La liste des derniers livres ajoutés
+     */
 
     public function findLatestBooks(int $limit = 4): array
     {

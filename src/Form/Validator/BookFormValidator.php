@@ -59,6 +59,12 @@ class BookFormValidator implements FormValidatorInterface
         $this->validateImage();
     }
 
+    /**
+     * Vérifie que le titre est valide.
+     *
+     * Si le champ est vide, une erreur est enregistrée.
+     * Si le champ contient moins de 2 caractères ou plus de 100 caractères, une erreur est enregistrée.
+     */
     private function validateTitle()
     {
         if (empty($this->data[self::TITLE_INPUT_NAME])) {
@@ -69,6 +75,12 @@ class BookFormValidator implements FormValidatorInterface
         }
     }
 
+    /**
+     * Vérifie que l'auteur est valide.
+     *
+     * Si le champ est vide, une erreur est enregistrée.
+     * Si le champ contient plus de 100 caractères, une erreur est enregistrée.
+     */
     private function validateAuthor()
     {
         if (empty($this->data[self::AUTHOR_INPUT_NAME])) {
@@ -79,6 +91,12 @@ class BookFormValidator implements FormValidatorInterface
         }
     }
 
+    /**
+     * Valide la description.
+     *
+     * Si le champ est vide, une erreur est enregistrée.
+     * Si le champ contient plus de 1000 caractères, une erreur est enregistrée.
+     */
     private function validateDescription()
     {
         if (empty($this->data[self::DESCRIPTION_INPUT_NAME])) {
@@ -89,6 +107,13 @@ class BookFormValidator implements FormValidatorInterface
         }
     }
 
+    /**
+     * Valide l'image.
+     *
+     * Si le champ est vide, il n'y a pas d'erreur, sauf si on est pas en mode édition.
+     * Si le fichier est trop lourd, une erreur est enregistrée.
+     * Si le fichier n'est pas une image valide, une erreur est enregistrée.
+     */
     private function validateImage()
     {
         $image = $this->getFile(self::IMAGE_INPUT_NAME);

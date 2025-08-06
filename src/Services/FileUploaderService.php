@@ -35,13 +35,27 @@ class FileUploaderService
 
         if (move_uploaded_file($file['tmp_name'], $targetPath)) {
             // Supprimer l'ancien fichier si fourni
-            if ($oldFile && file_exists($this->baseUploadDir . $oldFile)) {
-                unlink($this->baseUploadDir . $oldFile);
+            if ($oldFile) {
+                $this->delete($oldFile);
             }
 
             return $this->basePublicPath . $subfolder . '/' . $filename;
         }
 
         return null;
+    }
+
+    /**
+     * Supprime un fichier du dossier d’upload.
+     *
+     * @param string $filePath Chemin relatif à 'uploads/' (ex: 'avatars/photo.png')
+     * @return bool True si suppression réussie, False sinon
+     */
+    public function delete(string $filePath): bool
+    {
+        $relativePath = str_replace($this->basePublicPath, '', $filePath);
+        $fullPath = $this->baseUploadDir . $relativePath;
+
+        return file_exists($fullPath) && unlink($fullPath);
     }
 }

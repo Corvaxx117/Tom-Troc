@@ -41,22 +41,22 @@ class AccountController extends AbstractController
         $this->validatorFactory = $validatorFactory;
     }
 
-    /**
-     * Redirige vers la page de connexion si l'utilisateur n'est pas connecté.
-     * Si l'utilisateur est connecté, ne fait rien.
-     *
-     * @return Response|null La réponse de redirection si l'utilisateur n'est pas connecté, null sinon.
-     */
-    private function redirectIfNotAuthenticated(): ?Response
-    {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté pour accéder à cette page.');
-            return $this->render('auth/login.phtml', [
-                'title' => 'Connexion'
-            ], 302);
-        }
-        return null;
-    }
+    // /**
+    //  * Redirige vers la page de connexion si l'utilisateur n'est pas connecté.
+    //  * Si l'utilisateur est connecté, ne fait rien.
+    //  *
+    //  * @return Response|null La réponse de redirection si l'utilisateur n'est pas connecté, null sinon.
+    //  */
+    // private function isAuthenticateOrRenderLogin(): ?Response
+    // {
+    //     if (!AuthService::isAuthenticated()) {
+    //         $this->flashMessage->add('error', 'Vous devez être connecté pour accéder à cette page.');
+    //         return $this->render('auth/login.phtml', [
+    //             'title' => 'Connexion'
+    //         ], 302);
+    //     }
+    //     return null;
+    // }
 
     /**
      * Affiche la page de profil de l'utilisateur connecté.
@@ -69,7 +69,7 @@ class AccountController extends AbstractController
      */
     public function show(Request $request): Response
     {
-        if ($response = $this->redirectIfNotAuthenticated()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
         }
 
@@ -102,7 +102,7 @@ class AccountController extends AbstractController
      */
     public function update(Request $request): Response
     {
-        if ($response = $this->redirectIfNotAuthenticated()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
         }
 
@@ -122,9 +122,8 @@ class AccountController extends AbstractController
                 if (!empty($formData['password'])) {
                     $formData['password'] = password_hash($formData['password'], PASSWORD_BCRYPT);
                 } else {
-                    // On garde le mot de passe actuel depuis la base
-                    $dbUser = $this->userModel->findUserById($user->getId());
-                    $formData['password'] = $dbUser['password'] ?? null;
+                    // On garde le mot de passe actuel
+                    $formData['password'] = $user->getHashedPassword();
                 }
 
                 // Gestion de l'avatar

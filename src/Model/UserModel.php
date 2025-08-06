@@ -30,7 +30,11 @@ class UserModel extends TableAbstractModel
     public function getUserObjectById(int $id): User
     {
         $data = $this->findUserById($id);
-        return new User($data['id'], $data['name'], $data['email'], $data['is_admin'], $data['avatar']);
+
+        $user = new User($data['id'], $data['name'], $data['email'], $data['is_admin'], $data['avatar']);
+        $user->setHashedPassword($data['password']);
+
+        return $user;
     }
 
     /**

@@ -253,8 +253,21 @@ class BookController extends AbstractController
         }
 
         try {
+            // Récupération des infos du livre avant suppression
+            $book = $this->bookModel->findBookById($id);
+
+            // Suppression du livre
             $success = $this->bookModel->deleteBook($id);
-            $this->flashMessage->add($success ? 'success' : 'error', $success ? 'Livre supprimé avec succès.' : 'Erreur lors de la suppression du livre.');
+
+            // Suppression de l'image uniquement si la suppression a réussi
+            if ($success && $book && !empty($book['image_url'])) {
+                $this->fileUploader->delete($book['image_url']);
+            }
+
+            $this->flashMessage->add(
+                $success ? 'success' : 'error',
+                $success ? 'Livre supprimé avec succès.' : 'Erreur lors de la suppression du livre.'
+            );
         } catch (\Throwable $e) {
             $this->flashMessage->add('error', 'Une erreur est survenue : ' . $e->getMessage());
         }
@@ -316,23 +329,23 @@ class BookController extends AbstractController
         return $request->isPost() && empty($_POST) && ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0;
     }
 
-    /**
-     * Vérifie que l'utilisateur est authentifié. Si ce n'est pas le cas,
-     * ajoute un message d'erreur et redirige vers l'URL de connexion spécifiée.
-     *
-     * @param string $redirectUrl URL de redirection si l'utilisateur n'est pas authentifié.
-     * @return Response|null La réponse de redirection si l'utilisateur n'est pas connecté, null sinon.
-     */
+    // /**
+    //  * Vérifie que l'utilisateur est authentifié. Si ce n'est pas le cas,
+    //  * ajoute un message d'erreur et redirige vers l'URL de connexion spécifiée.
+    //  *
+    //  * @param string $redirectUrl URL de redirection si l'utilisateur n'est pas authentifié.
+    //  * @return Response|null La réponse de redirection si l'utilisateur n'est pas connecté, null sinon.
+    //  */
 
-    private function requireAuthentication(string $redirectUrl = '/auth/login'): ?Response
-    {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté.');
-            return $this->redirect($redirectUrl);
-        }
+    // private function requireAuthentication(string $redirectUrl = '/auth/login'): ?Response
+    // {
+    //     if (!AuthService::isAuthenticated()) {
+    //         $this->flashMessage->add('error', 'Vous devez être connecté.');
+    //         return $this->redirect($redirectUrl);
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
 
     /**
@@ -344,6 +357,7 @@ class BookController extends AbstractController
 
     private function assertBookOwnership(?array $book): bool
     {
-        return $book && $book['user_id'] === AuthService::getUser()->getId();
+        $user = AuthService::getUser();
+        return $book && $user && $book['user_id'] === $user->getId();
     }
 }

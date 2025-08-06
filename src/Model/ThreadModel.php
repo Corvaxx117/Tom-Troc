@@ -12,7 +12,7 @@ class ThreadModel extends TableAbstractModel
      * Retourne la liste des threads de l'utilisateur connecté
      * avec le dernier message et les infos du participant.
      */
-    public function findThreadsForUser(int $userId): array
+    public function findThreadsForUser(int $userId, int $limit = 10, int $offset = 0): array
     {
         // PAGINATION
         // modifier la requete avec des Clause Limit, evenements qui écoutent le scrolling 
@@ -43,11 +43,15 @@ class ThreadModel extends TableAbstractModel
             LEFT JOIN messages m ON m.thread_id = latest.thread_id AND m.sent_at = latest.max_date
             WHERE tp1.user_id = :userId
             ORDER BY last_message_date DESC
+            LIMIT :limit OFFSET :offset
             ";
         // La requete imbriquée permet de récupérer le dernier message non supprimé de chaque thread
 
         $stmt = $this->connection->prepare($sql);
-        $stmt->execute(['userId' => $userId]);
+        $stmt->bindValue(':userId', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        $stmt->execute();
 
         return $stmt->fetchAll();
     }

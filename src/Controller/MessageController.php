@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Model\MessageModel;
 use App\Model\ThreadModel;
+use App\Model\UserModel;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
 use Metroid\Http\JsonResponse;
@@ -16,16 +17,19 @@ class MessageController extends AbstractController
 {
     private MessageModel $messageModel;
     private ThreadModel $threadModel;
+    private UserModel $userModel;
 
     public function __construct(
         ViewRenderer $viewRenderer,
         FlashMessage $flashMessage,
         MessageModel $messageModel,
-        ThreadModel $threadModel
+        ThreadModel $threadModel,
+        UserModel $userModel
     ) {
         parent::__construct($viewRenderer, $flashMessage);
         $this->messageModel = $messageModel;
         $this->threadModel = $threadModel;
+        $this->userModel = $userModel;
     }
 
     /**
@@ -35,17 +39,22 @@ class MessageController extends AbstractController
      */
     public function index(Request $request): Response
     {
-        if ($response = $this->checkIfUserIsConnected()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
         }
 
         $user = AuthService::getUser();
-        $threads = $this->threadModel->findThreadsForUser($user->getId());
+        $limit = 10;
+        $page = max(1, (int) $request->get('page', 1));
+        $offset = ($page - 1) * $limit;
+
+        $threads = $this->threadModel->findThreadsForUser($user->getId(), $limit, $offset);
 
         return $this->render('message/index.phtml', [
             'title' => 'Messagerie',
             'threads' => $threads,
-            'user' => $user
+            'user' => $user,
+            'page' => $page
         ]);
     }
 
@@ -57,7 +66,7 @@ class MessageController extends AbstractController
      */
     public function threadMessages(Request $request, int $threadId): Response
     {
-        if ($response = $this->checkIfUserIsConnected()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
         }
         /** @var User */
@@ -87,14 +96,28 @@ class MessageController extends AbstractController
     }
 
 
+    /**
+     * Crée une nouvelle conversation si elle n'existe pas déjà.
+     * Reçoit l'ID de l'utilisateur cible en paramètre.
+     * Redirige vers la page de messagerie en cas d'erreur.
+     * Redirige vers la page de messagerie avec l'ID du thread en cas de succès.
+     * @param Request $request
+     * @return Response
+     */
     public function startNewConversation(Request $request): Response
     {
-        if ($response = $this->checkIfUserIsConnected()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
         }
 
         $currentUser = AuthService::getUser();
         $targetId = (int) $request->get('to');
+        $targetUser = $this->userModel->findUserById($targetId);
+        // On s'assure que l'utilisateur existe vraiment 
+        if (!$targetUser) {
+            $this->flashMessage->add('error', 'Utilisateur introuvable.');
+            return $this->redirect('/thread');
+        }
 
         // Ne pas envoyer de message à soi-même
         if (!$targetId || $targetId === $currentUser->getId()) {
@@ -127,8 +150,12 @@ class MessageController extends AbstractController
      */
     public function delete(Request $request, int $messageId): JsonResponse
     {
-        if ($response = $this->checkIfUserIsConnected()) {
+        if ($response = $this->requireAuthentication()) {
             return $response;
+        }
+
+        if (!$request->isDelete()) {
+            return new JsonResponse(['error' => 'Méthode non autorisée.'], 405);
         }
 
         $message = $this->messageModel->findOneMessage($messageId);
@@ -141,21 +168,5 @@ class MessageController extends AbstractController
         $this->messageModel->deleteMessage($messageId, $user->getId());
 
         return new JsonResponse(['success' => true]);
-    }
-
-
-    /**
-     * Vérifie que l'utilisateur est connecté. Si ce n'est pas le cas, redirige.
-     * @param string $redirectUrl URL de redirection
-     * @return Response|null La réponse de redirection si l'utilisateur n'est pas connecté, null sinon.
-     */
-    public function checkIfUserIsConnected(string $redirectUrl = '/auth/login'): ?Response
-    {
-        if (!AuthService::isAuthenticated()) {
-            $this->flashMessage->add('error', 'Vous devez être connecté.');
-            return $this->redirect($redirectUrl);
-        }
-
-        return null;
     }
 }

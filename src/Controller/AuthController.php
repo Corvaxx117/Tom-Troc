@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Security\User;
 use App\Model\UserModel;
+use App\Model\BookModel;
 use Metroid\Http\Request;
 use Metroid\Http\Response;
 use Metroid\View\ViewRenderer;
@@ -21,6 +22,7 @@ use App\Services\FileUploaderService;
 class AuthController extends AbstractController
 {
     private UserModel $userModel;
+    private BookModel $bookModel;
     private FormValidatorFactory $validatorFactory;
     private FileUploaderService $fileUploader;
 
@@ -28,6 +30,7 @@ class AuthController extends AbstractController
         ViewRenderer $viewRenderer,
         FlashMessage $flashMessage,
         UserModel $userModel,
+        BookModel $bookModel,
         FileUploaderService $fileUploader,
         FormValidatorFactory $validatorFactory
     ) {
@@ -35,6 +38,7 @@ class AuthController extends AbstractController
         $this->userModel = $userModel;
         $this->validatorFactory = $validatorFactory;
         $this->fileUploader = $fileUploader;
+        $this->bookModel = $bookModel;
     }
 
     /**
@@ -51,12 +55,14 @@ class AuthController extends AbstractController
             $user = $this->userModel->findUserByEmail($email);
 
             if ($user && password_verify($password, $user['password'])) {
-                AuthService::login($this->mapToUser($user));
+                $userObject = $this->mapToUser($user);
+                AuthService::login($userObject);
                 $this->flashMessage->add('success', 'Connexion réussie !');
 
                 return $this->render('home.phtml', [
                     'title' => 'Accueil',
-                    'user' => AuthService::getUser()
+                    'user' => AuthService::getUser(),
+                    'latestBooks' => $this->bookModel->findLatestBooks()
                 ], 200);
             }
 
@@ -76,7 +82,7 @@ class AuthController extends AbstractController
         AuthService::logout();
         $this->flashMessage->add('success', 'Vous êtes déconnecté(e).');
 
-        return $this->render('auth/login.phtml', ['title' => 'Connexion'], 200);
+        return $this->redirect('/auth/login');
     }
 
     /**
@@ -141,12 +147,18 @@ class AuthController extends AbstractController
      */
     private function mapToUser(array $data): User
     {
-        return new User(
+        $user = new User(
             $data['id'],
             $data['name'],
             $data['email'],
             $data['is_admin'],
-            $data['avatar']
+            $data['avatar'] ?? null
         );
+
+        if (!empty($data['password'])) {
+            $user->setHashedPassword($data['password']);
+        }
+
+        return $user;
     }
 }
